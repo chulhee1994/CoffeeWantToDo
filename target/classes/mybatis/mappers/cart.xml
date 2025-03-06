@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.cart">
+<resultMap id="cartResult" type="cartVO">
+    <result property="cart_id" column="cart_id"/>
+    <result property="goods_id" column="goods_id"/>
+    <result property="mem_id" column="mem_id"/>
+    <result property="order_goods_qty" column="order_goods_qty"/>
+
+    <!-- ✅ GoodsVO 매핑 -->
+    <association property="goodsVO" javaType="goodsVO">
+        <result property="goods_name" column="goods_name"/>
+        <result property="goods_price" column="goods_price"/>
+        <result property="goods_sales_price" column="goods_sales_price"/>
+        <result property="goods_point" column="goods_point"/>
+        <result property="goods_stock" column="goods_stock"/>
+    </association>
+
+    <!-- ✅ ImageFileVO 매핑 -->
+    <association property="imageFileVO" javaType="imageFileVO">
+        <result property="image_id" column="image_id"/>
+        <result property="goods_id" column="goods_id"/>
+        <result property="fileName" column="fileName"/>
+        <result property="fileType" column="fileType"/>
+        <result property="credate" column="credate"/>
+    </association>
+</resultMap>
+
+	
+	
+<!-- 냬거 -->
+<select id="selectCartList" parameterType="String" resultMap="cartResult">
+    <![CDATA[
+    SELECT c.cart_id, c.goods_id, c.mem_id, c.order_goods_qty, 
+           g.goods_name, g.goods_price, g.goods_sales_price, g.goods_point,g.goods_stock,
+           i.image_id, i.fileName, i.fileType, i.credate
+    FROM c_cart c
+    JOIN c_goods g ON c.goods_id = g.goods_id
+    LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+    WHERE c.mem_id = #{mem_id}
+    AND
+    i.fileType = 'main_image'
+    ]]>
+</select>
+
+	 <!-- 중복 상품 체크 -->
+    <select id="checkDuplicateCart" parameterType="cartVO" resultType="int">
+        <![CDATA[
+        SELECT COUNT(*) 
+        FROM c_cart
+        WHERE goods_id = #{goods_id} 
+        AND mem_id = #{mem_id}
+        ]]>
+    </select>
+    
+    
+    <insert id="addCart" parameterType="cartVO">
+ 		<![CDATA[
+ 		insert into c_cart(cart_id,goods_id,mem_id,order_goods_qty) values(SEQ_ORDER_ID.nextval,#{goods_id},#{mem_id},#{order_goods_qty})
+ 		]]>
+	</insert>
+	
+	
+	   <!-- ✅ 장바구니에서 특정 상품 삭제 -->
+    <delete id="deleteCart" parameterType="map">
+ 		<![CDATA[
+        DELETE FROM c_cart
+        WHERE cart_id = #{cartId} AND mem_id = #{userId}
+ 		]]>
+    </delete>
+    
+      <!-- ✅ 장바구니 상품 수량 업데이트 -->
+    <update id="updateCart" parameterType="map">
+ 		<![CDATA[
+        UPDATE c_cart
+        SET order_goods_qty = #{orderGoodsQty}
+        WHERE cart_id = #{cartId} AND mem_id = #{memId}
+ 		]]>
+    </update>
+    
+        <delete id="deleteAllCart" parameterType="string">
+ 		<![CDATA[
+        DELETE FROM c_cart WHERE mem_id = #{mem_id}
+ 		]]>
+    </delete>
+    
+    
+    <select id="getCartItemsByIds" resultMap="cartResult" parameterType="list">
+ 		<![CDATA[
+    SELECT 
+        c.cart_id, c.goods_id, c.order_goods_qty, 
+        g.goods_name, g.goods_sales_price, g.goods_point, g.goods_delivery_price
+    FROM c_cart c
+    LEFT JOIN c_goods g ON c.goods_id = g.goods_id
+    WHERE c.cart_id IN
+ 		]]>
+    <foreach item="cart_id" collection="list" open="(" separator="," close=")">
+ 		<![CDATA[
+        #{cart_id}
+ 		]]>
+    </foreach>
+</select>
+
+<delete id="deleteCartItems" parameterType="map">
+    DELETE FROM c_cart WHERE cart_id IN
+    <foreach collection="list" item="cart_id" open="(" separator="," close=")">
+        #{cart_id}
+    </foreach>
+</delete>
+
+</mapper>

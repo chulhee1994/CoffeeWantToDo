@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+   
+  <mapper namespace="mapper.review">
+  	<resultMap id="reviewResult" type="reviewVO">
+  		<result property="rownum" column="rownum" />
+		<result property="level" column="level" />
+  	
+		<result property="review_no" column="review_no" />
+		<result property="goods_id" column="goods_id" />
+		<result property="review_title" column="review_title" />
+		<result property="review_content" column="review_content" />
+		<result property="review_writedate" column="review_writedate" />
+		<result property="review_star" column="review_star" />
+		<result property="goods_like" column="goods_like" />
+		<result property="mem_id" column="mem_id" />
+		<result property="views" column="views" />
+		
+		<!-- 상품 정보  -->
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_price" column="goods_price" />
+		<result property="goods_sales_price" column="goods_sales_price" />
+		<result property="goods_stock" column="goods_stock" />
+		<result property="goods_create_date" column="goods_create_date" />
+		<!-- 상품 정보  -->
+	
+		<!-- 상품 이미지 테이블 정보  -->  		
+		<result property="fileName" column="fileName" />
+		<result property="fileType" column="fileType" />
+		<!-- 상품 이미지 테이블 정보  -->  		
+		
+		<result property="goods_name" column="goods_name" />
+		
+  	
+  	</resultMap>
+  	
+  	<resultMap id="reviewImageResult" type="reviewimageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="fileName" column="fileName" />
+		<result property="creDate" column="creDate" />
+		<result property="review_no" column="review_no" />
+		<result property="fileType" column="fileType" />
+	</resultMap>
+	
+	<select id="selectToReviews" resultType="int">
+		<![CDATA[
+			SELECT COUNT(REVIEW_NO) FROM C_REVIEW		
+		]]>
+	</select>
+	
+	<select id="seq_review_no_currval" resultType="int">
+		<![CDATA[
+		SELECT SEQ_REVIEW_NO.CURRVAL 
+		FROM DUAL	
+		]]>
+	</select>
+	
+	<select id="seq_review_no_nextval" resultType="int">
+		<![CDATA[
+		SELECT SEQ_REVIEW_NO.NEXTVAL
+		FROM DUAL	
+		]]>
+	</select>
+	
+<select id="reviewLists" parameterType="java.util.Map"
+        resultMap="reviewResult">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY r.review_writedate DESC) AS rn, -- ✅ 최신 글이 먼저 나오도록 순번 부여
+            r.*, 
+            g.goods_name, 
+            i.fileName
+        FROM c_review r
+        LEFT JOIN c_goods g ON r.goods_id = g.goods_id
+        LEFT JOIN c_image_review i 
+            ON r.review_no = i.review_no 
+            AND i.fileType = 'main_image'
+    ) 
+    WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1) 
+                   AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+    ORDER BY rn -- ✅ 최종적으로 정렬 보장
+    ]]>
+</select>
+
+<select id="getReviewsByGoodsId" resultType="ReviewVO">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROW_NUMBER() OVER (ORDER BY r.review_writedate DESC) AS rn, 
+            r.*, 
+            g.goods_name, 
+            i.fileName
+        FROM c_review r
+        LEFT JOIN c_goods g ON r.goods_id = g.goods_id
+        LEFT JOIN c_image_review i 
+            ON r.review_no = i.review_no 
+            AND i.fileType = 'main_image'
+        WHERE r.goods_id = #{goodsId} -- ✅ 특정 상품의 리뷰만 가져오기
+    )
+    WHERE rn BETWEEN ((#{review_section} - 1) * 100 + (#{review_pageNum} - 1) * 12 + 1) 
+                   AND ((#{review_section} - 1) * 100 + #{review_pageNum} * 12)
+    ORDER BY rn
+    ]]>
+</select>
+
+	<select id="getToReviews" resultType="int">
+		<![CDATA[
+			SELECT COUNT(*) 
+			FROM C_REVIEW		
+			WHERE goods_id = #{goodsId}
+		]]>
+	</select>
+
+<select id="selectSearchToReviews" parameterType="java.util.Map" resultType="int">
+    SELECT COUNT(*) 
+    FROM C_REVIEW 
+    WHERE 1=1
+    <if test="searchQuery != null and searchQuery != ''">
+        <if test="searchType eq 'review_title'">
+            AND REGEXP_LIKE(review_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'review_content'">
+            AND REGEXP_LIKE(review_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'both'">
+            AND (
+                REGEXP_LIKE(review_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) 
+                OR REGEXP_LIKE(review_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+            )
+        </if>
+    </if>
+</select>
+
+
+
+
+<!--  검색된 레시피 목록 가져오기 (페이징 적용) -->
+<select id="searchReviewLists" parameterType="java.util.Map" resultMap="reviewResult">
+    SELECT * FROM (
+        SELECT ROWNUM AS rn, B.* FROM (
+            SELECT r.*, g.goods_name, i.fileName  -- ✅ 상품 이름과 리뷰 이미지 추가
+            FROM C_REVIEW r
+            LEFT JOIN C_GOODS g ON r.goods_id = g.goods_id  -- ✅ 상품 정보 조인
+            LEFT JOIN C_IMAGE_REVIEW i  -- ✅ C_IMAGE_REVIEW로 변경
+            ON r.review_no = i.review_no 
+            AND i.fileType = 'main_image'  -- ✅ 리뷰 이미지의 대표 이미지 조건
+            WHERE 1=1
+            <if test="searchQuery != null and searchQuery != ''">
+                <if test="searchType eq 'review_title'">
+                    AND r.review_title LIKE '%' || #{searchQuery} || '%'
+                </if>
+                <if test="searchType eq 'review_content'">
+                    AND r.review_content LIKE '%' || #{searchQuery} || '%'
+                </if>
+                <if test="searchType eq 'both'">
+                    AND (
+                        r.review_title LIKE '%' || #{searchQuery} || '%'
+                        OR r.review_content LIKE '%' || #{searchQuery} || '%'
+                    )
+                </if>
+            </if>
+            ORDER BY r.review_writedate DESC  -- ✅ 최신순 정렬
+        ) B
+    ) 
+    WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1) 
+                  AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+</select>
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<insert id="addReview" parameterType="java.util.Map">
+    <![CDATA[
+    INSERT INTO C_REVIEW(REVIEW_NO, GOODS_ID,REVIEW_TITLE, REVIEW_CONTENT, REVIEW_STAR,MEM_ID)
+    VALUES (#{review_no}, #{goods_id},#{review_title}, #{review_content},#{review_star},#{mem_id})
+    ]]>
+	</insert>
+	
+	<insert id="insertReviewImage" parameterType="java.util.Map">
+    <![CDATA[
+    INSERT INTO C_IMAGE_REVIEW(IMAGE_ID, FILETYPE,FILENAME, CREDATE, REVIEW_NO)
+    VALUES (SEQ_REVIEW_IMAGE_ID.NEXTVAL, #{fileType},#{fileName}, SYSDATE, #{review_no})
+    ]]>
+	</insert>
+	
+	
+	<select id="viewReview" resultType="reviewVO" parameterType="int">
+    <![CDATA[
+		SELECT *
+		FROM c_review 
+		where review_no = #{review_no}
+    ]]>
+	</select>
+	
+	  <update id="updateReview" parameterType="java.util.Map">
+	   <![CDATA[
+        UPDATE c_review
+        SET review_title = #{review_title},
+            review_content = #{review_content}
+        WHERE review_no = #{review_no}
+        ]]>
+    </update>
+    
+	<select id="selectReviewImages" resultType="reviewimageFileVO" parameterType="int">
+    <![CDATA[
+		SELECT * 
+		FROM c_image_review
+		WHERE review_no = #{review_no}
+    ]]>
+	</select>
+	
+	<update id="incrementLike" parameterType="int">
+		<![CDATA[
+			update c_review
+				set goods_like = goods_like+1
+				where review_no = #{review_no}
+		]]>
+	</update>
+	
+	<delete id="deleteReview" parameterType="int">
+		<![CDATA[
+			delete c_review
+			where review_no = #{review_no}
+		]]>
+	</delete>
+	
+	    <!-- ✅ 리뷰 이미지 삭제 -->
+    <delete id="deleteReviewImage">
+    <![CDATA[
+        DELETE  c_image_review
+        WHERE review_no = #{review_no} AND fileName = #{fileName}
+       ]]>
+    </delete>
+	
+	<delete id="deleteReviewImagesNames" parameterType="int">
+		<![CDATA[
+			delete c_image_review
+			where review_no = #{review_no}
+		]]>
+	</delete>
+	
+<update id="updateViews" parameterType="int">
+		 <![CDATA[
+		 	update C_REVIEW
+		 	set views = views + 1
+		 	where review_no = #{review_no}
+		  ]]>
+	</update>
+	
+
+	
+<!-- 모든 리뷰 목록 가져오기 -->
+	<select id="getAllReviews" resultType="ReviewVO">
+        <![CDATA[
+        SELECT 
+		    REVIEW_NO, 
+		    GOODS_ID, 
+		    REVIEW_TITLE, 
+		    REVIEW_CONTENT, 
+		    REVIEW_WRITEDATE, 
+		    REVIEW_STAR, 
+		    GOODS_LIKE, 
+		    MEM_ID, 
+		    VIEWS
+		FROM (
+		    SELECT 
+		        REVIEW_NO, 
+		        GOODS_ID, 
+		        REVIEW_TITLE, 
+		        REVIEW_CONTENT, 
+		        REVIEW_WRITEDATE, 
+		        REVIEW_STAR, 
+		        GOODS_LIKE, 
+		        MEM_ID, 
+		        VIEWS
+		    FROM C_REVIEW c
+		    WHERE 
+		        c.GOODS_ID IN (
+		            SELECT g.GOODS_ID
+		            FROM c_goods g
+		            WHERE g.mem_id = #{mem_id}
+		        )
+		    ORDER BY REVIEW_WRITEDATE DESC
+		)
+		WHERE ROWNUM <= 5
+        ]]>
+	</select>	
+  
+  </mapper>

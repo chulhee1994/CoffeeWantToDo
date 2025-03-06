@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+<mapper namespace="mapper.goods">
+
+	<!-- 상품 등록을 위한 ResultMap -->
+	<resultMap id="goodsResult"
+		type="com.myspring.team.goods.vo.GoodsVO">
+		<result property="goods_id" column="goods_id" />
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_category" column="goods_category" />
+		<result property="goods_price" column="goods_price" />
+		<result property="goods_sales_price" column="goods_sales_price" />
+		<result property="goods_stock" column="goods_stock" />
+		<result property="goods_like" column="goods_like" />
+		<result property="mem_id" column="mem_id" />
+		<result property="goods_roasting_date"
+			column="goods_roasting_date" />
+		<result property="goods_create_date" column="goods_create_date" />
+		<result property="goods_w_filter" column="goods_w_filter" />
+		<result property="goods_c_roasting" column="goods_c_roasting" />
+		<result property="goods_c_blending" column="goods_c_blending" />
+		<result property="goods_c_gram" column="goods_c_gram" />
+		<result property="goods_c_note" column="goods_c_note" />
+		<result property="goods_c_det_note" column="goods_c_det_note" />
+		<result property="goods_origin1" column="goods_origin1" />
+		<result property="goods_origin2" column="goods_origin2" />
+		<result property="goods_origin3" column="goods_origin3" />
+		<result property="goods_point" column="goods_point" />
+		<result property="goods_m_filter" column="goods_m_filter" />
+		<result property="goods_status" column="goods_status" />
+		<result property="fileName" column="fileName" />
+	</resultMap>
+
+	<!-- 이미지 파일 등록을 위한 ResultMap -->
+	<resultMap id="imageResult"
+		type="com.myspring.team.goods.vo.ImageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="goods_id" column="goods_id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileType" column="fileType" />
+		<result property="creDATE" column="creDATE" />
+	</resultMap>
+
+	<!-- 굿즈 조회 -->
+	<select id="selectGoodsList" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+SELECT * FROM (
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status}
+    AND g.goods_category = #{goods_category}
+) 
+WHERE rn BETWEEN ((#{pageNum} - 1) * 8 + 1) AND (#{pageNum} * 8)
+
+    ]]>
+
+
+	</select>
+	<select id="selectGoodsDetail" parameterType="int"
+		resultMap="goodsResult">
+    <![CDATA[
+    SELECT g.*, d.fileName, d.fileType
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE g.goods_id = #{goods_id}
+    ]]>
+	</select>
+
+	<select id="selectGoodsWithMainImage" resultType="GoodsVO">
+		SELECT g.*,
+		d.fileName
+		FROM c_goods g
+		JOIN c_image_goods d ON g.goods_id =
+		d.goods_id
+		WHERE d.filetype = 'main_image'
+		AND (
+		REGEXP_LIKE(g.goods_name, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]',
+		'')) OR
+		REGEXP_LIKE(g.goods_category, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_c_det_note,
+		REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin1, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin2,
+		REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin3, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_c_note,
+		REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+		)
+		ORDER BY
+		g.goods_create_date DESC
+
+
+	</select>
+	
+	<select id="selectGoodsListseller" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+SELECT * FROM (
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+AND g.mem_id = #{mem_id}
+    AND g.goods_status = #{goods_status}
+    AND g.goods_category = #{goods_category}
+) 
+WHERE rn BETWEEN ((#{pageNum} - 1) * 8 + 1) AND (#{pageNum} * 8)
+    ]]>
+</select>
+
+	<select id="selectGoodsByMBTI" parameterType="String"
+		resultMap="goodsResult">
+	<![CDATA[
+    SELECT g.*, d.fileName
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE g.goods_m_filter = #{mbti} and d.filetype = 'main_image'
+    ]]>
+	</select>
+	<select id="selectwegoods" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_category = '원두'
+    AND g.goods_w_filter = #{weatherMain}
+    ]]>
+	</select>
+
+	<!-- 이포근 -->
+	<select id="selectGoodsList2" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('원두')
+    ]]>
+	</select>
+
+	<select id="selectGoodsList3" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('베이커리')
+    ]]>
+	</select>
+
+	<select id="selectGoodsList4" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('커피용품')
+    ]]>
+	</select>
+
+	<!-- SELLER -->
+	<select id="selectSellerGoodsList2" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('원두')
+    AND g.mem_id = #{mem_id, jdbcType=VARCHAR}
+    ]]>
+	</select>
+
+	<select id="selectSellerGoodsList3" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('베이커리')
+    AND g.mem_id = #{mem_id, jdbcType=VARCHAR}
+    ]]>
+	</select>
+
+	<select id="selectSellerGoodsList4" parameterType="String"
+		resultMap="goodsResult">
+    <![CDATA[
+
+
+    SELECT g.*, d.fileName, ROW_NUMBER() OVER (ORDER BY g.goods_create_date DESC) AS rn
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE d.filetype = 'main_image'
+    AND g.goods_status = #{goods_status, jdbcType=VARCHAR} 
+    AND g.goods_category IN ('커피용품')
+    AND g.mem_id = #{mem_id, jdbcType=VARCHAR}
+    ]]>
+	</select>
+
+
+	<select id="getGoodsForCarousel" resultType="GoodsVO">
+		SELECT
+		goods_id,
+		goods_name,
+		goods_category,
+		goods_price,
+		goods_sales_price,
+		goods_stock,
+		goods_like,
+		mem_id,
+		goods_roasting_date,
+		goods_create_date,
+		goods_w_filter,
+		goods_c_roasting,
+		goods_c_blending,
+		goods_c_gram,
+		goods_c_note,
+		goods_c_det_note,
+		goods_origin1,
+		goods_origin2,
+		goods_origin3,
+		goods_point,
+		goods_m_filter,
+		goods_status
+		FROM
+		c_goods
+		WHERE
+		goods_status = 'Y'
+		ORDER BY
+		goods_create_date DESC;
+	</select>
+
+	<select id="selectAllGoods" resultType="GoodsVO">
+    <![CDATA[
+    SELECT c.*,i.fileName
+    FROM c_goods c, c_image_goods i
+    where c.goods_id = i.goods_id
+    and i.filetype = 'main_image'
+    and c.goods_status = 'Y'
+    and c.goods_category = '원두'
+    order by c.goods_id desc
+    ]]>
+    </select>
+
+    <select id="selectGoodsBySeller" parameterType="String"
+        resultType="GoodsVO">
+    <![CDATA[
+    SELECT c.*,i.fileName
+    from c_goods c,c_image_goods i
+    where c.goods_id = i.goods_id
+    and i.filetype = 'main_image'
+    and c.goods_status = 'Y'
+    and c.mem_id =#{sellerId}
+    and c.goods_category = '원두'
+    order by c.goods_id desc
+    ]]>
+    </select>
+    
+    
+	<select id="getGoodsById" resultType="goodsVO"
+		parameterType="int">
+     <![CDATA[
+     select * 
+     from c_goods
+     where goods_id = #{goods_id}
+         ]]>
+	</select>
+
+	<update id="updateStock" parameterType="map">
+	 <![CDATA[
+	 update c_goods
+	  SET goods_stock = goods_stock - #{order_goods_qty, jdbcType=NUMERIC}
+	WHERE goods_id = #{goods_id, jdbcType=NUMERIC}
+	 ]]>
+	</update>
+</mapper>

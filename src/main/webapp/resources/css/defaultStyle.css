@@ -1,0 +1,208 @@
+/*-----------------------font & body-----------------------*/
+    	body {
+    	background-color: #f8f9fa;  
+    	margin:0;
+    	padding:0;  	
+    	}
+
+		.page-container {
+		    display: flex;
+		    flex-direction: column;
+		    justify-content: center;
+		    align-items: center;
+		    width: 100%; /* 기본 설정 */
+		    padding: 0 0 0 20px !important; /* 좌우 패딩 추가 */
+		    box-sizing: border-box; /* 패딩을 포함한 너비 계산 */
+		}
+		
+		.btn-custom {
+        display: inline-block;
+        border: 1px solid #dcdcdc !important;
+        background-color: #fff;
+        color: #000;
+        font-size: 14px;
+        padding: 10px 20px;
+        text-decoration: none;
+        cursor: pointer;
+        margin: 0 10px;
+        border-radius: 3px;
+    }
+    
+/*-----------------------header-----------------------*/    
+		
+        .header {
+            width: 100% ;
+            background-color: #f8f9fa ;
+            border-bottom: 1px solid #ddd ;
+            text-align: center ;
+        }
+        			
+        .navbar-fullscreen {
+            position: fixed ;
+            top: 0 ;
+            left: 0 ;
+            width: 100% ;
+            height: 100% ;
+            background-color: #A4814F ;
+            color: white ;
+            display: none ;
+            flex-direction: column ;
+            align-items: center ;
+            justify-content: flex-start ;
+            z-index: 1000 ;
+            transform: scale(0.8) ;
+            opacity: 0 ;
+            transition: transform 0.4s ease, opacity 0.4s ease ;
+        }
+
+        .navbar-fullscreen.open {
+            display: flex ;
+            transform: scale(1) ;
+            opacity: 1 ;
+        }
+
+        .navbar-logo-section, .navbar-logo-container {
+            width: 100% ;
+            text-align: center ;
+        }
+
+        .navbar-logo-section img, .navbar-logo-container img {
+            cursor: pointer ;
+            max-width: 300px ; 
+        }
+
+        .navbar-list-section {
+            width: 100% ;
+            text-align: center ;
+        }
+
+        .navbar-list-section ul {
+            list-style-type: none ;
+            padding: 0 ;
+            width: 100% ;
+        }
+
+        .navbar-list-section ul li {
+            padding: 10px 20px ;
+            font-size: 18px ;
+            color: white ;
+        }
+
+        .navbar-list-section ul li a {
+            color: white ;
+            text-decoration: none ;
+        }
+
+        .navbar-list-section ul li a:hover {
+            color: white ;
+        }
+        
+        .mypage-container {
+            position: absolute ;
+            top: 10px ;
+            right: 10px ;
+            font-size: 12px ; /* 크기 조정 */
+        }
+
+        .mypage-container ul {
+            list-style: none ;
+            margin: 0 ;
+            padding: 0 ;
+        }
+
+        .mypage-container ul li {
+            display: inline-block ;
+            margin-left: 10px ;
+        }
+
+        .mypage-container ul li a {
+            text-decoration: none ;
+            color: #333 ;
+        }
+/*----------------------main.jsp-----------------------*/
+        .image-section {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f7f7f7;
+            padding: 50px 0;
+        }
+
+        .image-section img {
+            max-width: 90%;
+            height: auto;
+            object-fit: contain;
+        }        
+        
+        .video-section {
+            width: 100%;
+            height: 100vh;
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-section video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }        
+  
+/*----------------------loginForm.jsp-----------------------*/  
+		.loginForm {
+			margin: 170px 0;
+		}
+		.join-atag {
+			text-decoration: none;
+			color:black;
+		}
+		
+		.form-control {
+            width: 50%; /* 너비 50%로 설정 */
+            margin: 0 auto; /* 가운데 정렬 */
+        }
+        
+        /* 버튼 색상 조정 */
+        .btn-login {
+            background-color: black !important;
+            color: white !important;
+            transition: none !important;
+        }
+        .btn-join {
+            background-color: white !important;
+            color: black !important;
+            border: 1px solid black !important;
+            transition: none !important;
+        }
+        
+        .btn-login:hover {
+            background-color: black;
+            color: white;
+        }
+        .btn-join:hover {
+            background-color: white;
+            color: black;
+            border: 1px solid black;
+        }
+        
+        /* 버튼들의 너비 설정 */
+        .action-buttons {
+            max-width: 50%; /* 패스워드 입력칸과 동일한 너비 */
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            gap: 1px; /* 버튼들 사이 간격 조정 */
+        }
+
+        /* 링크 스타일 수정 */
+        .btn-link {
+            color: black !important;
+            text-decoration: none !important; /* 밑줄 제거 */
+        } 
+        .btn-link:hover {
+            color: #555 !important;
+            text-decoration: none !important; /* 밑줄 제거 */
+        }
+        

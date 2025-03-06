@@ -1,0 +1,80 @@
+#result{
+  display: none;
+  background-color: #f7f7f7;
+  font-family: 'Arial', sans-serif;
+  width: 80%;
+  text-align: center;
+  border-radius: 20px;
+}
+
+
+
+    h1 {
+        text-align: center;
+        color: #333;
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+    }
+
+    /* 결과 페이지 스타일 */
+    #result {
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 40px 20px;
+    }
+
+    .resultname {
+        text-align: center;
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: #75c0c0;
+        margin-bottom: 20px;
+    }
+
+    .resultDesc {
+        font-size: 1rem;
+        text-align: center;
+        color: #666;
+        margin-top: 20px;
+    }
+
+    #resultImg {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    /* 이미지 스타일 */
+    #resultImg img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+	.btn-custom {
+        display: inline-block;
+        border: 1px solid #dcdcdc !important;
+        background-color: #fff;
+        color: #000;
+        font-size: 14px;
+        padding: 10px 20px;
+        text-decoration: none;
+        cursor: pointer;
+        margin: 0 10px;
+        border-radius: 3px;
+    }
+
+    /* 미디어 쿼리: 작은 화면을 위한 스타일 */
+    @media (max-width: 767px) {
+        #result {
+            padding: 30px 15px;
+        }
+
+        h1 {
+            font-size: 2rem;
+        }
+
+        .resultname {
+            font-size: 1.5rem;
+        }
+    }

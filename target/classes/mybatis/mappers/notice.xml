@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+   
+<mapper namespace="mapper.notice">
+ 	<resultMap id="noticeResult" type="noticeVO" >
+		<result property="rownum" column="rownum"/>
+		<result property="level" column="level"/>
+		<result property="notice_no" column="notice_no"/>
+		<result property="notice_head" column="notice_head"/>
+		<result property="notice_title" column="notice_title"/>
+		<result property="notice_content" column="notice_content"/>
+		<result property="notice_writedate" column="notice_writedate"/>
+		<result property="fileName" column="fileName"/>
+		<result property="mem_id" column="mem_id"/>
+		<result property="views" column="views"/>
+	</resultMap> 
+	
+	
+	
+	
+	<!-- 공지사항 시퀀스 -->
+	<select id="seq_notice_no_currval" resultType="int">
+	<![CDATA[
+	select seq_notice_no.currval from dual
+	]]>
+	</select>
+	
+	<select id="seq_notice_no_nextval" resultType="int">
+	<![CDATA[
+	select seq_notice_no.nextval from dual
+	]]>
+	</select>
+	
+	
+	<!-- 공지사항 시퀀스 -->
+	
+	<!-- 페이징 -->
+<!-- 페이징이 적용된 검색 기능 -->
+<!-- 🔥 검색된 전체 공지사항 개수만 반환 -->
+<select id="countSearchNotices" parameterType="java.util.Map" resultType="int">
+    SELECT COUNT(*) FROM C_NOTICE
+    WHERE 1=1
+    <if test="searchQuery != null and searchQuery != ''">
+        <if test="searchType eq 'notice_title'">
+            AND REGEXP_LIKE(NOTICE_TITLE, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'notice_content'">
+            AND REGEXP_LIKE(NOTICE_CONTENT, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'both'">
+            AND (
+                REGEXP_LIKE(NOTICE_TITLE, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) 
+                OR REGEXP_LIKE(NOTICE_CONTENT, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+            )
+        </if>
+    </if>
+</select>
+
+
+
+<select id="searchNoticeLists" parameterType="java.util.Map" resultType="com.myspring.team.notice.vo.NoticeVO">
+    SELECT * FROM (
+        SELECT ROWNUM AS rn, B.* FROM (
+            SELECT * FROM C_NOTICE
+            WHERE 1=1
+            <if test="searchQuery != null and searchQuery != ''">
+                <if test="searchType == 'notice_title'">
+                    AND REGEXP_LIKE(NOTICE_TITLE, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+                </if>
+                <if test="searchType == 'notice_content'">
+                    AND REGEXP_LIKE(NOTICE_CONTENT, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+                </if>
+                <if test="searchType == 'both'">
+                    AND (REGEXP_LIKE(NOTICE_TITLE, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) 
+                    OR REGEXP_LIKE(NOTICE_CONTENT, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) )
+                </if>
+            </if>
+            ORDER BY NOTICE_NO DESC  <!-- 🔥 정렬 후 페이징 적용 -->
+        ) B
+    ) 
+    WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1) 
+                  AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+</select>
+
+
+
+
+<!-- 전체 공지사항 개수 가져오기 -->
+<select id="selectToNotices" resultType="int">
+    <![CDATA[
+        SELECT COUNT(NOTICE_NO) FROM C_NOTICE
+    ]]>
+</select>
+
+
+
+	<select id="selectAllNoticesList" parameterType="java.util.Map" resultMap="noticeResult">
+		<![CDATA[
+SELECT * FROM (
+    SELECT 
+        ROWNUM AS rn,
+        notice_no,
+        notice_head,
+        notice_title,
+        notice_content,
+        notice_writedate,
+        fileName,
+        mem_id,
+        views
+    FROM (
+        SELECT * FROM C_NOTICE 
+        ORDER BY notice_writedate DESC  -- 최신글 정렬 후 ROWNUM 적용
+    )
+    WHERE ROWNUM <= #{section} * 100  -- 섹션별 최대 100개 가져오기
+) 
+WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1) 
+              AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+		]]>
+</select>
+
+	
+	
+
+	<select id="selectNotice" resultMap="noticeResult">
+    <![CDATA[
+		select *
+		from c_notice
+		where notice_no = #{notice_no}	
+    ]]>
+	</select>
+
+
+<!-- ㅇㅇ-->
+
+<!-- 공지사항 번호 미리 생성 -->
+<select id="selectNewNoticeNO" resultType="int">
+    <![CDATA[
+        SELECT SEQ_NOTICE_NO.NEXTVAL FROM DUAL
+    ]]>
+</select>
+
+<!-- 공지사항 추가 -->
+<insert id="addNotice" parameterType="java.util.Map">
+    INSERT INTO C_NOTICE (NOTICE_NO, NOTICE_HEAD, NOTICE_TITLE, NOTICE_CONTENT, FILENAME, MEM_ID)
+    VALUES (#{notice_no}, #{notice_head}, #{notice_title}, #{notice_content}, 
+            #{fileName, jdbcType=VARCHAR}, #{mem_id})
+</insert>
+
+
+<!-- 공지사항 파일 업데이트 -->
+<update id="updateNoticeFile" parameterType="noticeVO">
+    <![CDATA[
+    UPDATE C_NOTICE
+    SET FILENAME = #{fileName}
+    WHERE NOTICE_NO = #{notice_no}
+    ]]>
+</update>
+
+<delete id="deleteNotice" parameterType="int">
+ <![CDATA[
+    DELETE FROM C_NOTICE WHERE NOTICE_NO = #{notice_no}
+     ]]>
+</delete>
+
+<update id="updateNotice" parameterType="java.util.Map">
+ <![CDATA[
+    UPDATE C_NOTICE 
+    SET NOTICE_HEAD = #{notice_head}, 
+        NOTICE_TITLE = #{notice_title}, 
+        NOTICE_CONTENT = #{notice_content}, 
+        fileName = #{fileName, jdbcType=VARCHAR}
+    WHERE NOTICE_NO = #{notice_no}
+     ]]>
+</update>
+
+<update id="updateViews" parameterType="int">
+		<![CDATA[
+		update c_notice
+		set views = views+1
+		where notice_no = #{notice_no}
+		]]>
+	</update>
+
+</mapper>

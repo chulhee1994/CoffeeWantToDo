@@ -1,0 +1,460 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.member">
+	<!-- 회원 정보 조회 -->
+	<resultMap id="memResult" type="memberVO">
+		<result property="mem_id" column="mem_id" />
+		<result property="mem_pwd" column="mem_pwd" />
+		<result property="mem_pwd_hint" column="mem_pwd_hint" />
+		<result property="mem_name" column="mem_name" />
+		<result property="mem_tel1" column="mem_tel1" />
+		<result property="mem_tel2" column="mem_tel2" />
+		<result property="mem_tel3" column="mem_tel3" />
+		<result property="mem_telsts_yn" column="mem_telsts_yn" />
+
+		<result property="mem_gender" column="mem_gender" />
+
+		<result property="mem_email1" column="mem_email1" />
+		<result property="mem_email2" column="mem_email2" />
+		<result property="mem_emailsts_yn" column="mem_emailsts_yn" />
+		<result property="mem_birth" column="mem_birth" />
+
+		<result property="mem_zipcode" column="mem_zipcode" />
+		<result property="mem_add1" column="mem_add1" />
+		<result property="mem_add2" column="mem_add2" />
+		<result property="mem_add3" column="mem_add3" />
+		<result property="mem_point" column="mem_point" />
+		<result property="mem_del_yn" column="mem_del_yn" />
+		<result property="mem_grade" column="mem_grade" />
+
+		<result property="mem_joindate" column="mem_joindate" />
+		<result property="mem_seller_num" column="mem_seller_num" />
+		<result property="mem_cmp_name" column="mem_cmp_name" />
+		<result property="mem_agree1" column="mem_agree1" />
+		<result property="mem_agree2" column="mem_agree2" />
+		<result property="mem_del_yn_date" column="mem_del_yn_date" />
+	</resultMap>
+
+<resultMap id="pointResult" type="pointHistoryVO">
+		<result property="history_id" column="history_id" />
+		<result property="mem_id" column="mem_id" />
+		<result property="point_amount" column="point_amount" />
+		<result property="action_type" column="action_type" />
+		<result property="action_date" column="action_date" />
+		<result property="order_id" column="order_id" />
+		<result property="goods_names" column="goods_names" />
+		<result property="final_total_price" column="final_total_price" />
+	</resultMap>
+
+	<!-- 로그인 -->
+	<select id="loginById" resultType="memberVO"
+		parameterType="memberVO">
+<![CDATA[
+	select * from c_member
+	  where mem_id = #{mem_id} and mem_pwd = #{mem_pwd} and mem_grade != 'kakao'
+]]>
+	</select>
+
+	<!-- 카카오 사용자 회원가입 -->
+	<insert id="insertNewKakao" parameterType="memberVO">
+	
+	<![CDATA[
+    	insert into c_member(		 mem_id,
+				 					 mem_pwd,
+                                     mem_name,
+                                     mem_gender,                                   
+                                     mem_birth,
+                                     mem_tel1,
+                                     mem_tel2,                                     
+                                     mem_tel3,
+                                     mem_telsts_yn,
+                                     mem_email1,
+                                     mem_email2,
+                                     mem_emailsts_yn,
+                                     mem_grade,
+                                     mem_zipcode,
+                                     mem_add1,
+                                     mem_add2,
+                                     mem_add3)
+							 values(#{mem_id, jdbcType=VARCHAR},
+									#{mem_pwd, jdbcType=VARCHAR},							
+									#{mem_name, jdbcType=VARCHAR},
+                                 	#{mem_gender, jdbcType=VARCHAR},
+                                    #{mem_birth, jdbcType=DATE},
+                                    #{mem_tel1, jdbcType=VARCHAR},
+                                    #{mem_tel2, jdbcType=VARCHAR},
+                                    #{mem_tel3, jdbcType=VARCHAR},
+                                    #{mem_telsts_yn, jdbcType=VARCHAR},
+                                    #{mem_email1, jdbcType=VARCHAR},
+                                    #{mem_email2, jdbcType=VARCHAR},
+                                    #{mem_emailsts_yn, jdbcType=VARCHAR},
+                                    'kakao',
+                                    #{mem_zipcode, jdbcType=VARCHAR},
+                                    #{mem_add1, jdbcType=VARCHAR},
+                                    #{mem_add2, jdbcType=VARCHAR},
+                                    #{mem_add3, jdbcType=VARCHAR})           
+   ]]>
+	</insert>
+	<!-- 일반 사용자 회원가입 -->
+	<insert id="insertNewCommon" parameterType="memberVO">
+  <![CDATA[
+    	insert into c_member(		 mem_id,
+				 					 mem_pwd,
+                                     mem_name,
+                                     mem_gender,                                   
+                                     mem_birth,
+                                     mem_tel1,
+                                     mem_tel2,                                     
+                                     mem_tel3,
+                                     mem_telsts_yn,
+                                     mem_email1,
+                                     mem_email2,
+                                     mem_emailsts_yn,
+                                     mem_grade,
+                                     mem_zipcode,
+                                     mem_add1,
+                                     mem_add2,
+                                     mem_add3)
+							 values(#{mem_id, jdbcType=VARCHAR},
+									#{mem_pwd, jdbcType=VARCHAR},
+									#{mem_name, jdbcType=VARCHAR},
+                                 	#{mem_gender, jdbcType=VARCHAR},
+                                    #{mem_birth, jdbcType=DATE},
+                                    #{mem_tel1, jdbcType=VARCHAR},
+                                    #{mem_tel2, jdbcType=VARCHAR},
+                                    #{mem_tel3, jdbcType=VARCHAR},
+                                    #{mem_telsts_yn, jdbcType=VARCHAR},
+                                    #{mem_email1, jdbcType=VARCHAR},
+                                    #{mem_email2, jdbcType=VARCHAR},
+                                    #{mem_emailsts_yn, jdbcType=VARCHAR},
+                                    'common',
+                                    #{mem_zipcode, jdbcType=VARCHAR},
+                                    #{mem_add1, jdbcType=VARCHAR},
+                                    #{mem_add2, jdbcType=VARCHAR},
+                                    #{mem_add3, jdbcType=VARCHAR})           
+   ]]>
+	</insert>
+
+
+	<!-- 판매자 회원가입 -->
+	<insert id="insertNewSeller" parameterType="memberVO">
+  <![CDATA[
+    	insert into c_member(		 mem_id,
+				 					 mem_pwd,
+                                     mem_name,
+                                     mem_seller_num,
+                                     mem_cmp_name,
+                                     mem_tel1,
+                                     mem_tel2,                                     
+                                     mem_tel3,
+                                     mem_telsts_yn,
+                                     mem_email1,
+                                     mem_email2,
+                                     mem_emailsts_yn,
+                                     mem_grade,
+                                     mem_zipcode,
+                                     mem_add1,
+                                     mem_add2,
+                                     mem_add3)
+							 values(#{mem_id, jdbcType=VARCHAR},
+									#{mem_pwd, jdbcType=VARCHAR},
+									#{mem_name, jdbcType=VARCHAR},
+                                 	#{mem_seller_num, jdbcType=VARCHAR},
+                                    #{mem_cmp_name, jdbcType=VARCHAR},
+                                    #{mem_tel1, jdbcType=VARCHAR},
+                                    #{mem_tel2, jdbcType=VARCHAR},
+                                    #{mem_tel3, jdbcType=VARCHAR},
+                                    #{mem_telsts_yn, jdbcType=VARCHAR},
+                                    #{mem_email1, jdbcType=VARCHAR},
+                                    #{mem_email2, jdbcType=VARCHAR},
+                                    #{mem_emailsts_yn, jdbcType=VARCHAR},
+                                    'seller',
+                                    #{mem_zipcode, jdbcType=VARCHAR},
+                                    #{mem_add1, jdbcType=VARCHAR},
+                                    #{mem_add2, jdbcType=VARCHAR},
+                                    #{mem_add3, jdbcType=VARCHAR})           
+   ]]>
+	</insert>
+
+	<!-- 아이디 중복 검사 -->
+	<select id="selectOverlappedID" parameterType="String"
+		resultType="String">
+		select decode(count(*),1, 'true', 0, 'false')
+		from c_member
+		where mem_id = #{mem_id}
+	</select>
+
+	<!-- 회원 정보 수정 -->
+	<update id="updateMember" parameterType="memberVO">
+		<trim prefix="UPDATE c_member SET" suffixOverrides=",">
+			<!-- 공통 필드 처리 -->
+			<if test="mem_pwd != null">mem_pwd = #{mem_pwd, jdbcType=VARCHAR}, </if>
+			<if test="mem_name != null">mem_name = #{mem_name, jdbcType=VARCHAR}, </if>
+			<if test="mem_birth != null">mem_birth = #{mem_birth, jdbcType=DATE}, </if>
+			<if test="mem_tel1 != null">mem_tel1 = #{mem_tel1, jdbcType=VARCHAR}, </if>
+			<if test="mem_tel2 != null">mem_tel2 = #{mem_tel2, jdbcType=VARCHAR}, </if>
+			<if test="mem_tel3 != null">mem_tel3 = #{mem_tel3, jdbcType=VARCHAR}, </if>
+			<if test="mem_telsts_yn != null">mem_telsts_yn = #{mem_telsts_yn, jdbcType=VARCHAR}, </if>
+			<if test="mem_email1 != null">mem_email1 = #{mem_email1, jdbcType=VARCHAR}, </if>
+			<if test="mem_email2 != null">mem_email2 = #{mem_email2, jdbcType=VARCHAR}, </if>
+			<if test="mem_emailsts_yn != null">mem_emailsts_yn = #{mem_emailsts_yn, jdbcType=VARCHAR},
+			</if>
+			<if test="mem_zipcode != null">mem_zipcode = #{mem_zipcode, jdbcType=VARCHAR}, </if>
+			<if test="mem_add1 != null">mem_add1 = #{mem_add1, jdbcType=VARCHAR}, </if>
+			<if test="mem_add2 != null">mem_add2 = #{mem_add2, jdbcType=VARCHAR}, </if>
+			<if test="mem_add3 != null">mem_add3 = #{mem_add3, jdbcType=VARCHAR}, </if>
+
+			<!-- seller-specific 필드 -->
+			<if test="mem_grade == 'seller'">
+				<if test="mem_seller_num != null">mem_seller_num = #{mem_seller_num, jdbcType=VARCHAR},
+				</if>
+				<if test="mem_cmp_name != null">mem_cmp_name = #{mem_cmp_name, jdbcType=VARCHAR}, </if>
+			</if>
+		</trim>
+
+		WHERE mem_id = #{mem_id}
+	</update>
+
+	<!-- 기본 주소 정보 수정 -->
+	<update id="updateDefaultAddress" parameterType="memberVO">
+		<!-- 공통 필드 처리 -->
+        <![CDATA[
+        update c_member set
+        mem_zipcode = #{mem_zipcode, jdbcType=VARCHAR},
+        mem_add1 = #{mem_add1, jdbcType=VARCHAR},
+        mem_add2 = #{mem_add2, jdbcType=VARCHAR},
+        mem_add3 = #{mem_add3, jdbcType=VARCHAR}
+   		WHERE mem_id = #{mem_id, jdbcType=VARCHAR}
+   		]]>
+	</update>
+
+	<!-- 회원 탈퇴 -->
+	<delete id="SignOutMember" parameterType="memberVO">
+	<![CDATA[
+		update c_member set mem_del_yn = 'Y', mem_del_yn_date = sysdate
+		where mem_id = #{mem_id, jdbcType=VARCHAR} and mem_pwd = #{mem_pwd, jdbcType=VARCHAR}
+	]]>
+	</delete>
+
+	<!-- 개인정보 동의내역 수정 -->
+	<update id="updatePersonalInfo" parameterType="memberVO">
+	<![CDATA[
+		update c_member set mem_telsts_yn = #{mem_telsts_yn, jdbcType=VARCHAR}, mem_emailsts_yn = #{mem_emailsts_yn, jdbcType=VARCHAR}
+		where mem_id = #{mem_id, jdbcType=VARCHAR}
+	]]>
+	</update>
+
+	<!-- 아이디 비밀번호 찾기 -->
+	<select id="selectMember" resultMap="memResult"
+		parameterType="memberVO">
+		select mem_id
+		,mem_pwd
+		,mem_pwd_hint
+		,mem_name
+		,mem_tel1
+		,mem_tel2
+		,mem_tel3
+		,mem_telsts_yn
+		,mem_gender
+		,mem_email1
+		,mem_email2
+		,mem_emailsts_yn
+		,mem_birth
+		,mem_zipcode
+		,mem_add1
+		,mem_add2
+		,mem_add3
+		,mem_point
+		,mem_grade
+		from c_member
+		where 1=1
+		<if test='mem_id != null and mem_id != ""'>
+			and mem_id = #{mem_id}
+		</if>
+		<if test='mem_name != null and mem_name != ""'>
+			and mem_name = #{mem_name}
+		</if>
+		<if test='mem_email1 != null and mem_email1 != ""'>
+			and mem_email1 = #{mem_email1}
+		</if>
+		<if test='mem_email2 != null and mem_email2 != ""'>
+			and mem_email2 = #{mem_email2}
+		</if>
+	</select>
+
+	<!-- 회원 비밀번호 찾기 후 비밀번호 변경 -->
+	<update id="updateMemPwd" parameterType="memberVO">
+	<![CDATA[
+		update c_member
+		set mem_pwd = #{mem_pwd}
+		where mem_id = #{mem_id}
+	]]>
+	</update>
+
+	<!-- 카카오 db 저장유무 확인 -->
+	<select id="selectLoginInfo" resultMap="memResult"
+		parameterType="memberVO">
+		select mem_id
+		,mem_pwd
+		,mem_pwd_hint
+		,mem_name
+		,mem_tel1
+		,mem_tel2
+		,mem_tel3
+		,mem_telsts_yn
+		,mem_gender
+		,mem_email1
+		,mem_email2
+		,mem_emailsts_yn
+		,mem_birth
+		,mem_zipcode
+		,mem_add1
+		,mem_add2
+		,mem_add3
+		,mem_point
+		,mem_grade
+		from c_member
+		<where>
+			<choose>
+				<when test='loginType == "kakao"'>
+					mem_id = #{mem_id}
+				</when>
+				<otherwise>
+					mem_id = #{mem_id}
+					and mem_pwd = #{mem_pwd}
+				</otherwise>
+			</choose>
+		</where>
+	</select>
+
+	<!-- 사용처 : 관리자 -->
+	<!-- 모든 회원 정보 조회 -->
+	<select id="selectMemberList" resultMap="memResult"
+		parameterType="memberVO">
+		select *
+		from c_member
+		order by mem_grade, mem_joindate
+	</select>
+
+	<!-- 회원 mem_grade 수정 -->
+	<update id="modMemberGrade" parameterType="memberVO">
+		<![CDATA[
+			update c_member
+			set mem_grade = #{mem_grade}
+			where mem_id = #{mem_id}
+		]]>
+	</update>
+
+	<!-- 회원 탈퇴(ㄹㅇ 테이블에서 삭제됨 연관 데이터도 전부 삭제 CASCADE) -->
+	<delete id="deleteMember" parameterType="memberVO">
+		<![CDATA[
+			delete from c_member where mem_id = #{mem_id}		
+		]]>
+	</delete>
+
+
+	<update id="modMemberdelyn" parameterType="memberVO">
+		<![CDATA[
+			update c_member
+			set mem_del_yn = #{mem_del_yn},
+    		mem_del_yn_date = case 
+                 when #{mem_del_yn} = 'Y' then sysdate
+                 when #{mem_del_yn} = 'N' then NULL
+            else mem_del_yn_date
+                 end
+			where mem_id = #{mem_id}
+		]]>
+	</update>
+
+	<update id="updateMemberPoint" parameterType="map">
+		update c_member
+		set
+		mem_point = mem_point + #{point}
+		where mem_id = #{mem_id}
+	</update>
+
+	<insert id="updateMemberPointHistory" parameterType="map">
+		insert into
+		c_point_history(history_id,mem_id,point_amount,action_type,
+		seq_order_id)
+		values(seq_history_id.nextval,#{mem_id},#{point},#{action_type},
+		#{order_id})
+	</insert>
+
+
+	<!-- 일반 사용자 수 조회 -->
+	<select id="countCommonUsers" resultType="int">
+		select count(*)
+		from
+		c_member
+		where mem_grade in ('common', 'kakao')
+	</select>
+
+	<select id="selectSellerList" resultMap="memResult">
+		select mem_id
+		,mem_cmp_name
+		from c_member
+		where mem_grade = 'seller'
+	</select>
+	<select id="selectGetPointList" resultType="pointHistoryVO">
+		SELECT
+		cph.point_amount,
+		cph.action_date,
+		cph.seq_order_id,
+		cph.mem_id,
+		cph.action_type,
+		LISTAGG(o.goods_name, ', ') WITHIN GROUP (ORDER BY o.goods_name) AS goods_names,
+		SUM(o.final_total_price) AS final_total_price
+		FROM c_point_history cph
+		LEFT JOIN c_order o ON cph.seq_order_id =
+		o.order_id
+		WHERE cph.mem_id = #{mem_id, jdbcType=VARCHAR}
+		AND
+		cph.action_type LIKE '%구매%'
+		GROUP BY cph.point_amount, cph.action_date,
+		cph.seq_order_id, cph.mem_id, cph.action_type
+		ORDER BY cph.action_date
+	</select>
+
+	<select id="selectGetPointListReview" resultType="pointHistoryVO">
+		SELECT
+		cph.point_amount,
+		cph.action_date,
+		cph.seq_order_id,
+		cph.mem_id,
+		cph.action_type,
+		LISTAGG(o.goods_name, ', ') WITHIN GROUP (ORDER BY o.goods_name) AS goods_names,
+		SUM(o.final_total_price) AS final_total_price
+		FROM c_point_history cph
+		LEFT JOIN c_order o ON cph.seq_order_id =
+		o.order_id
+		WHERE cph.mem_id = #{mem_id, jdbcType=VARCHAR}
+		AND
+		cph.action_type LIKE '%리뷰%'
+		GROUP BY cph.point_amount, cph.action_date,
+		cph.seq_order_id, cph.mem_id, cph.action_type
+		ORDER BY cph.action_date
+	</select>
+
+	<select id="selectUsePointList" resultType="pointHistoryVO">
+		SELECT
+		cph.point_amount,
+		cph.action_date,
+		cph.seq_order_id,
+		cph.mem_id,
+		cph.action_type,
+		LISTAGG(o.goods_name, ', ') WITHIN GROUP (ORDER BY o.goods_name) AS goods_names,
+		SUM(o.final_total_price) AS final_total_price
+		FROM c_point_history cph
+		LEFT JOIN c_order o ON cph.seq_order_id = o.order_id
+		WHERE cph.mem_id =
+		#{mem_id, jdbcType=VARCHAR}
+		AND cph.action_type LIKE '%할인%'
+		GROUP BY
+		cph.point_amount, cph.action_date, cph.seq_order_id, cph.mem_id,
+		cph.action_type
+		ORDER BY cph.action_date
+	</select>
+	
+</mapper>

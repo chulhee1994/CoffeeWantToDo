@@ -1,0 +1,33 @@
+body{
+			height: 100%;
+		}
+		
+.container {
+			padding: 10px 50px;
+		}
+		
+.ct2-title {
+			margin-bottom:20px;
+		}		
+
+.table td, .table th {
+            vertical-align: middle; /* 셀 내부 수직 중앙 정렬 */
+            text-align: center; /* 셀 내부 수평 중앙 정렬 */
+        }	
+        
+.text-gray {
+	color : gray;
+}        	
+
+.btn-custom {
+        display: inline-block;
+        border: 1px solid #dcdcdc !important;
+        background-color: #fff;
+        color: #000;
+        font-size: 14px;
+        padding: 10px 20px;
+        text-decoration: none;
+        cursor: pointer;
+        margin: 0 10px;
+        border-radius: 3px;
+    }

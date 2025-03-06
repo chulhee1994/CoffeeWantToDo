@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration 	PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "../mybatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias type="com.myspring.team.member.vo.MemberVO" alias="memberVO"/>
+		<typeAlias type="com.myspring.team.goods.vo.GoodsVO" alias="goodsVO" />
+		<typeAlias type="com.myspring.team.goods.vo.ImageFileVO" alias="imageFileVO" />
+		<typeAlias type="com.myspring.team.notice.vo.NoticeVO" alias="noticeVO"/>
+		<typeAlias type="com.myspring.team.recipe.vo.RecipeVO" alias="recipeVO"/>
+		<typeAlias type="com.myspring.team.address.vo.AddressVO" alias="addressVO"/>
+		<typeAlias type="com.myspring.team.mypage.vo.MypageVO" alias="mypageVO"/>
+		<typeAlias type="com.myspring.team.order.vo.OrderVO" alias="orderVO"/>
+		<typeAlias type="com.myspring.team.cart.vo.CartVO" alias="cartVO"/>
+		
+		<typeAlias type="com.myspring.team.recipe.vo.ImageFileVO" alias="recipeimageFileVO"/>
+		<typeAlias type="com.myspring.team.recipe.vo.CommentVO" alias="commentVO"/>
+		<typeAlias type="com.myspring.team.review.vo.ReviewVO" alias="reviewVO"/>
+		<typeAlias type="com.myspring.team.review.vo.ImageFileVO" alias="reviewimageFileVO"/>
+		<typeAlias type="com.myspring.team.member.vo.PointHistoryVO" alias="pointHistoryVO"/>		
+	</typeAliases>
+</configuration>

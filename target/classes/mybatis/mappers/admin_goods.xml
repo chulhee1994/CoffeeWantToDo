@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+<mapper namespace="mapper.admin.goods">
+
+	<!-- 상품 등록을 위한 ResultMap -->
+	<resultMap id="goodsResult"
+		type="com.myspring.team.goods.vo.GoodsVO">
+		<result property="goods_id" column="goods_id" />
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_category" column="goods_category" />
+		<result property="goods_price" column="goods_price" />
+		<result property="goods_sales_price" column="goods_sales_price" />
+		<result property="goods_stock" column="goods_stock" />
+		<result property="goods_like" column="goods_like" />
+		<result property="mem_id" column="mem_id" />
+		<result property="goods_roasting_date"
+			column="goods_roasting_date" />
+		<result property="goods_create_date" column="goods_create_date" />
+		<result property="goods_w_filter" column="goods_w_filter" />
+		<result property="goods_c_roasting" column="goods_c_roasting" />
+		<result property="goods_c_blending" column="goods_c_blending" />
+		<result property="goods_c_gram" column="goods_c_gram" />
+		<result property="goods_c_note" column="goods_c_note" />
+		<result property="goods_c_det_note" column="goods_c_det_note" />
+		<result property="goods_origin1" column="goods_origin1" />
+		<result property="goods_origin2" column="goods_origin2" />
+		<result property="goods_origin3" column="goods_origin3" />
+		<result property="goods_point" column="goods_point" />
+		<result property="goods_m_filter" column="goods_m_filter" />
+		<result property="goods_status" column="goods_status" />
+	</resultMap>
+
+	<!-- 이미지 파일 등록을 위한 ResultMap -->
+	<resultMap id="imageResult"
+		type="com.myspring.team.goods.vo.ImageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="goods_id" column="goods_id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileType" column="fileType" />
+		<result property="creDATE" column="creDATE" />
+	</resultMap>
+
+	<!-- 상품 등록 쿼리 -->
+	<insert id="insertNewGoods" parameterType="goodsVO">
+		<selectKey resultType="int" keyProperty="goods_id"
+			order="BEFORE">
+			select SEQ_GOODS_ID.nextval from dual
+		</selectKey>
+
+        <![CDATA[
+            insert into c_goods (
+                goods_id,
+                goods_name,
+                goods_category,
+                goods_price,
+                goods_sales_price,
+                goods_stock,              
+                mem_id,
+                goods_roasting_date,
+                goods_status,
+                goods_w_filter,
+                goods_c_roasting,
+                goods_c_blending,
+                goods_c_gram,
+                goods_c_note,
+                goods_c_det_note,
+                goods_origin1,
+                goods_origin2,
+                goods_origin3,
+                goods_point,
+                goods_m_filter
+            )
+            values (
+                #{goods_id, jdbcType=DECIMAL},
+                #{goods_name, jdbcType=VARCHAR},
+                #{goods_category, jdbcType=VARCHAR},
+                #{goods_price, jdbcType=DECIMAL},
+                #{goods_sales_price, jdbcType=DECIMAL},
+                #{goods_stock, jdbcType=DECIMAL},           
+                #{mem_id, jdbcType=VARCHAR},
+                #{goods_roasting_DATE, jdbcType=DATE},
+             	#{goods_status, jdbcType=VARCHAR},
+                #{goods_w_filter, jdbcType=VARCHAR},
+                #{goods_c_roasting, jdbcType=VARCHAR},
+                #{goods_c_blending, jdbcType=VARCHAR},
+                #{goods_c_gram, jdbcType=DECIMAL},
+                #{goods_c_note, jdbcType=VARCHAR},
+                #{goods_c_det_note, jdbcType=VARCHAR},
+                #{goods_origin1, jdbcType=VARCHAR},
+                #{goods_origin2, jdbcType=VARCHAR},
+                #{goods_origin3, jdbcType=VARCHAR},
+                #{goods_point, jdbcType=DECIMAL},
+                #{goods_m_filter, jdbcType=VARCHAR}
+            )
+        ]]>
+	</insert>
+
+	<!-- 이미지 파일 등록 쿼리 -->
+	<insert id="insertGoodsImageFile"
+		parameterType="com.myspring.team.goods.vo.ImageFileVO">
+		<selectKey resultType="int" keyProperty="image_id"
+			order="BEFORE">
+			select SEQ_IMAGE_ID.nextval from dual
+		</selectKey>
+
+        <![CDATA[
+            insert into c_image_goods (
+                image_id,
+                goods_id,
+                fileName,
+                fileType,
+                creDATE
+            )
+            values (
+                #{image_id},
+                #{goods_id},
+                #{fileName},
+                #{fileType},
+                sysdate
+            )
+        ]]>
+	</insert>
+	<select id="selectModGoodsDetail" parameterType="int"
+		resultMap="goodsResult">
+    <![CDATA[
+    SELECT g.*, d.fileName, d.fileType
+    FROM c_goods g
+    JOIN c_image_goods d ON g.goods_id = d.goods_id
+    WHERE g.goods_id = #{goods_id}
+    ]]>
+	</select>
+
+	<!-- 상품 정보 업데이트 쿼리 -->
+	<update id="updateGoods" parameterType="Map">
+    <![CDATA[
+        update c_goods
+        set
+            goods_name = #{goods_name, jdbcType=VARCHAR},
+            goods_category = #{goods_category, jdbcType=VARCHAR},
+            goods_price = #{goods_price, jdbcType=DECIMAL},
+            goods_sales_price = #{goods_sales_price, jdbcType=DECIMAL},
+            goods_stock = #{goods_stock, jdbcType=DECIMAL},
+            goods_roasting_date = #{goods_roasting_date, jdbcType=DATE},
+            goods_w_filter = #{goods_w_filter, jdbcType=VARCHAR},
+            goods_c_roasting = #{goods_c_roasting, jdbcType=VARCHAR},
+            goods_c_blending = #{goods_c_blending, jdbcType=VARCHAR},
+            goods_c_gram = #{goods_c_gram, jdbcType=DECIMAL},
+            goods_c_note = #{goods_c_note, jdbcType=VARCHAR},
+            goods_c_det_note = #{goods_c_det_note, jdbcType=VARCHAR},
+            goods_origin1 = #{goods_origin1, jdbcType=VARCHAR},
+            goods_origin2 = #{goods_origin2, jdbcType=VARCHAR},
+            goods_origin3 = #{goods_origin3, jdbcType=VARCHAR},
+            goods_point = #{goods_point, jdbcType=DECIMAL},
+            goods_m_filter = #{goods_m_filter, jdbcType=VARCHAR}
+        where goods_id = #{goods_id, jdbcType=DECIMAL}
+    ]]>
+	</update>
+
+	<update id="updateGoodsImageFile"
+		parameterType="com.myspring.team.goods.vo.ImageFileVO">
+    <![CDATA[
+    UPDATE c_image_goods
+    SET 
+        fileName = #{fileName},
+        fileType = #{fileType}
+    WHERE goods_id = #{goods_id}
+    AND fileName = #{fileName}
+    ]]>
+	</update>
+
+
+	<delete id="deleteGoods" parameterType="Map">
+    <![CDATA[
+        DELETE FROM c_goods
+        WHERE goods_id = #{goods_id, jdbcType=DECIMAL}
+    ]]>
+	</delete>
+
+	<delete id="deleteGoodsImageFile"
+		parameterType="com.myspring.team.goods.vo.ImageFileVO">
+    <![CDATA[
+        DELETE FROM c_image_goods
+        WHERE goods_id = #{goods_id}
+        
+    ]]>
+	</delete>
+
+	<select id="modselectGoodsWithMainImage" resultType="GoodsVO">
+		SELECT g.*, d.fileName
+		FROM c_goods g
+		JOIN c_image_goods d ON g.goods_id = d.goods_id
+		WHERE d.filetype = 'main_image'
+		AND (
+		REGEXP_LIKE(g.goods_name, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_category, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_c_det_note, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin1, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin2, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_origin3, REGEXP_REPLACE(#{searchQuery},
+		'[ㄱ-ㅎㅏ-ㅣ]', '')) OR
+		REGEXP_LIKE(g.goods_c_note, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+		)
+		ORDER BY g.goods_create_date DESC
+
+
+	</select>
+
+	<update id="updateN" parameterType="int">
+    <![CDATA[
+    UPDATE c_goods 
+    SET goods_status = 'Y' 
+    WHERE goods_id = #{goods_id}
+    ]]>
+	</update>
+
+
+</mapper>

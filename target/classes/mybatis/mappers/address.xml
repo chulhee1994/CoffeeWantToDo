@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+<mapper namespace="mapper.address">
+	<!-- 회원당 배송지 추가 테이블 -->
+	<resultMap id="addressResult" type="addressVO">
+		<id property="address_id" column="address_id" />
+		<result property="mem_id" column="mem_id" />
+		<result property="address_name" column="address_name" />
+		<result property="mem_zipcode" column="mem_zipcode" />
+		<result property="mem_add1" column="mem_add1" />
+		<result property="mem_add2" column="mem_add2" />
+		<result property="mem_add3" column="mem_add3" />
+	</resultMap>
+
+	<!-- 배송지 추가 -->
+	<insert id="insertNewAddress" parameterType="java.util.Map">
+  	<![CDATA[
+  		insert into c_address (
+    		address_id, 
+    		mem_id,
+    		address_name,
+    		mem_zipcode,
+    		mem_add1,
+    		mem_add2,
+    		mem_add3
+  		) values ((select nvl(max(address_id), 0) + 1 
+     	from c_address
+     	where mem_id = #{mem_id, jdbcType=VARCHAR}), 
+    		#{mem_id, jdbcType=VARCHAR},                     
+    		#{address_name, jdbcType=VARCHAR},       
+    		#{mem_zipcode, jdbcType=VARCHAR},             
+    		#{mem_add1, jdbcType=VARCHAR},     
+    		#{mem_add2, jdbcType=VARCHAR},     
+    		#{mem_add3, jdbcType=VARCHAR} 
+  		)
+  	]]>
+	</insert>
+
+	<!-- 배송지 조회 -->
+	<select id="selectAddressByMemberId" resultMap="addressResult">
+	<![CDATA[
+		select 
+			address_id, 
+    		address_name,
+    		mem_zipcode,
+    		mem_add1,
+    		mem_add2,
+    		mem_add3
+    		from c_address
+			where mem_id = #{mem_id, jdbcType=VARCHAR}
+			order by address_id
+	]]>
+
+	</select>
+
+	<!-- 배송지 수정 -->
+	<update id="updateAddressByAddressId" parameterType="addressVO">
+	<![CDATA[
+		update c_address set 
+			address_name = #{address_name, jdbcType=VARCHAR},
+			mem_zipcode = #{mem_zipcode, jdbcType=VARCHAR},
+			mem_add1 = #{mem_add1, jdbcType=VARCHAR},
+			mem_add2 = #{mem_add2, jdbcType=VARCHAR},
+			mem_add3 = #{mem_add3, jdbcType=VARCHAR}
+			where mem_id = #{mem_id, jdbcType=VARCHAR} and address_id = #{address_id, jdbcType=INTEGER}
+	]]>
+	</update>
+
+	<!-- 배송지 삭제 -->
+	<delete id="deleteAddressByAddressId" parameterType="addressVO">
+	<![CDATA[
+		delete from c_address
+		where mem_id = #{mem_id, jdbcType=VARCHAR} and address_id = #{address_id, jdbcType=INTEGER}
+	]]>
+	</delete>
+
+	<!-- 배송지 삭제 후 address_id 앞당기기 -->
+	<update id="relocationByAddressId" parameterType="addressVO">
+	<![CDATA[
+	  update c_address set
+      address_id = address_id - 1
+      where mem_id = #{mem_id, jdbcType=VARCHAR} and address_id > #{address_id, jdbcType=INTEGER}
+	]]>
+	</update>
+</mapper>

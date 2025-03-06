@@ -1,0 +1,571 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.order">
+	<!-- 리절트 맵 정의 -->
+	<resultMap id="orderGoodsResult"
+		type="com.myspring.team.order.vo.OrderVO">
+		<id property="seq_order_id" column="seq_order_id" />
+		<result property="order_id" column="order_id" />
+		<result property="mem_id" column="mem_id" />
+		<result property="goods_id" column="goods_id" />
+		<result property="orderer_name" column="orderer_name" />
+		<result property="order_goods_qty" column="order_goods_qty" />
+		<result property="order_total_price" column="order_total_price" />
+		<result property="final_total_price" column="final_total_price" />
+		<result property="orderer_hp1" column="orderer_hp1" />
+		<result property="orderer_hp2" column="orderer_hp2" />
+		<result property="orderer_hp3" column="orderer_hp3" />
+		<result property="receiver_name" column="receiver_name" />
+		<result property="receiver_tel1" column="receiver_tel1" />
+		<result property="receiver_tel2" column="receiver_tel2" />
+		<result property="receiver_tel3" column="receiver_tel3" />
+		<result property="address_id" column="address_id" />
+		<result property="delivery_address" column="delivery_address" />
+		<result property="delivery_method" column="delivery_method" />
+		<result property="delivery_message" column="delivery_message" />
+		<result property="gift_wrapping" column="gift_wrapping" />
+		<result property="pay_method" column="pay_method" />
+		<result property="card_com_name" column="card_com_name" />
+		<result property="card_pay_month" column="card_pay_month" />
+		<result property="pay_orderer_hp_num"
+			column="pay_orderer_hp_num" />
+		<result property="delivery_state" column="delivery_state" />
+		<result property="pay_order_time" column="pay_order_time" />
+		<result property="review_status" column="review_status" />
+		<result column="order_date" property="orderDate" />
+		<result column="total_sales" property="totalSales" />
+		<result column="month" property="month" />
+		<result property="imp_uid" column="imp_uid" />
+		<result property="goods_point" column="goods_point" />
+		<result property="merchant_uid" column="merchant_uid" />
+		<result property="t_id" column="t_id" />
+		<result property="complete_time" column="complete_time" />
+		<result property="seller_id" column="seller_id" />
+
+		<!-- ✅ GoodsVO 매핑 -->
+		<association property="goodsVO"
+			javaType="com.myspring.team.goods.vo.GoodsVO">
+			<result property="goods_name" column="goods_name" />
+			<result property="goods_price" column="goods_price" />
+			<result property="goods_sales_price"
+				column="goods_sales_price" />
+			<result property="goods_point" column="goods_point" />
+			<result property="goods_delivery_price"
+				column="goods_delivery_price" />
+			<result property="goods_stock" column="goods_stock" />
+			<result property="goods_mem_id" column="goods_mem_id" />
+			<result property="goods_goods_id" column="goods_goods_id" />
+			<result property="seller_id" column="seller_id" />
+		</association>
+
+		<!-- ✅ ImageFileVO 매핑 -->
+		<association property="imageFileVO"
+			javaType="com.myspring.team.goods.vo.ImageFileVO">
+			<result property="image_id" column="image_id" />
+			<result property="goods_id" column="goods_id" />
+			<result property="fileName" column="fileName" />
+			<result property="fileType" column="fileType" />
+			<result property="credate" column="credate" />
+		</association>
+
+		<association property="memberVO"
+			javaType="com.myspring.team.member.vo.MemberVO">
+			<result property="mem_email1" column="mem_email1" />
+			<result property="mem_email2" column="mem_email2" />
+		</association>
+
+	</resultMap>
+
+	<!-- CartVO 매핑 (연결된 장바구니 정보) -->
+	<resultMap id="cartResult" type="CartVO">
+		<result property="cart_id" column="cart_id" />
+		<result property="goods_id" column="goods_id" />
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_sales_price" column="goods_sales_price" />
+		<result property="order_goods_qty" column="order_goods_qty" />
+		<result property="goods_fileName" column="goods_fileName" />
+	</resultMap>
+
+	<resultMap id="goodsResult"
+		type="com.myspring.team.goods.vo.GoodsVO">
+		<result property="goods_name" column="goods_name" />
+		<result property="goods_price" column="goods_price" />
+		<result property="goods_sales_price" column="goods_sales_price" />
+		<result property="goods_stock" column="goods_stock" />
+		<result property="goods_point" column="goods_point" />
+	</resultMap>
+
+
+
+	<resultMap id="imageResult"
+		type="com.myspring.team.goods.vo.ImageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="goods_id" column="goods_id" />
+		<result property="fileName" column="fileName" />
+		<result property="fileType" column="fileType" />
+		<result property="creDATE" column="creDATE" />
+	</resultMap>
+
+	<select id="selectMyOrderList" resultMap="orderGoodsResult"
+		parameterType="String">
+    <![CDATA[
+        SELECT 
+            o.*, 
+            c.cart_id, c.goods_id, c.goods_name, c.goods_sales_price, 
+            c.order_goods_qty, c.goods_fileName,
+            g.goods_delivery_price, g.goods_point  -- 🚀 추가된 필드
+        FROM c_order o
+        LEFT JOIN c_cart c ON o.goods_id = c.goods_id
+        LEFT JOIN c_goods g ON o.goods_id = g.goods_id  -- 🚀 c_goods 테이블 JOIN 추가
+        WHERE TO_CHAR(o.pay_order_time, 'yyyy-mm-dd') = TO_CHAR(SYSDATE, 'yyyy-mm-dd') 
+        AND o.mem_id = #{mem_id}
+        ORDER BY o.pay_order_time DESC
+    ]]>
+	</select>
+
+
+
+	<insert id="insertNewOrder" parameterType="orderVO">
+		<selectKey resultType="int" keyProperty="seq_order_id"
+			order="BEFORE">
+			SELECT seq_order_id.NEXTVAL FROM dual
+		</selectKey>
+    <![CDATA[
+    INSERT INTO c_order(
+        seq_order_id, order_id, mem_id, 
+        goods_id, 
+        orderer_name, 
+        goods_name, 
+        order_goods_qty,
+        goods_sales_price, 
+        order_total_price, 
+        final_total_price, 
+        orderer_hp1,
+        orderer_hp2, 
+        orderer_hp3, 
+        receiver_name, 
+        receiver_tel1, 
+        receiver_tel2, 
+        receiver_tel3,
+        address_id, 
+        delivery_address, 
+        delivery_method, 
+        delivery_message,
+        gift_wrapping, 
+        pay_method, 
+        card_com_name, 
+        card_pay_month, 
+        pay_orderer_hp_num,
+        delivery_state, 
+        pay_order_time, 
+        review_status, 
+        goods_fileName,
+        imp_uid,
+        merchant_uid,
+        t_id
+    ) VALUES (
+        #{seq_order_id}, #{order_id}, #{mem_id},
+        #{goods_id, jdbcType=INTEGER}, 
+        #{orderer_name, jdbcType=VARCHAR}, 
+        #{goods_name, jdbcType=VARCHAR}, 
+        #{order_goods_qty, jdbcType=INTEGER},
+        #{goods_sales_price, jdbcType=INTEGER}, 
+        #{order_total_price, jdbcType=INTEGER}, 
+        #{final_total_price, jdbcType=INTEGER}, 
+        #{orderer_hp1, jdbcType=VARCHAR},
+        #{orderer_hp2, jdbcType=VARCHAR}, 
+        #{orderer_hp3, jdbcType=VARCHAR}, 
+        #{receiver_name, jdbcType=VARCHAR}, 
+        #{receiver_tel1, jdbcType=VARCHAR}, 
+        #{receiver_tel2, jdbcType=VARCHAR}, 
+        #{receiver_tel3, jdbcType=VARCHAR},
+        #{address_id, jdbcType=INTEGER}, 
+        #{delivery_address, jdbcType=VARCHAR}, 
+        #{delivery_method, jdbcType=VARCHAR}, 
+        #{delivery_message, jdbcType=VARCHAR},
+        #{gift_wrapping, jdbcType=VARCHAR}, 
+        #{pay_method, jdbcType=VARCHAR}, 
+        #{card_com_name, jdbcType=VARCHAR}, 
+        #{card_pay_month, jdbcType=VARCHAR}, 
+        #{pay_orderer_hp_num, jdbcType=VARCHAR},
+        '배송준비중', 
+        SYSDATE, 
+        'N', 
+        #{goods_fileName, jdbcType=VARCHAR},
+        #{imp_uid},
+        #{merchant_uid},
+        #{t_id}
+    )
+    ]]>
+	</insert>
+
+
+	<select id="selectOrderIdList" resultMap="orderGoodsResult">
+    <![CDATA[
+    SELECT 
+        o.seq_order_id, o.order_id, o.mem_id, o.goods_id, 
+        o.orderer_name, o.goods_name, o.order_goods_qty, 
+        o.goods_sales_price, o.order_total_price, o.final_total_price,
+        o.orderer_hp1, o.orderer_hp2, o.orderer_hp3, 
+        o.receiver_name, o.receiver_tel1, o.receiver_tel2, o.receiver_tel3,
+        o.address_id, o.delivery_address, o.delivery_method, o.delivery_message,
+        o.gift_wrapping, o.pay_method, o.card_com_name, o.card_pay_month, 
+        o.pay_orderer_hp_num, o.delivery_state, o.pay_order_time, o.review_status,
+        o.goods_fileName, -- ✅ goods_fileName 조회 추가
+        o.imp_uid,
+        o.merchant_uid,
+        o.t_id,
+        -- ✅ 회원 정보 추가
+        m.mem_email1, 
+        m.mem_email2,
+        -- ✅ 상품 정보 추가
+        g.goods_name, 
+        g.goods_price, 
+        g.goods_sales_price, 
+        g.goods_point
+    FROM C_ORDER o
+    LEFT JOIN C_MEMBER m ON o.mem_id = m.mem_id  -- ✅ 회원 정보 조인
+    LEFT JOIN C_GOODS g ON o.goods_id = g.goods_id  -- ✅ 상품 정보 조인
+    WHERE o.order_id = #{order_id}
+    ]]>
+	</select>
+
+
+
+	<select id="selectOrderID" resultType="int">
+	    <![CDATA[
+		    select seq_order_id_uq.nextval from dual
+    	]]>
+	</select>
+
+	<select id="selectMyOrder" resultMap="orderGoodsResult"
+		parameterType="String">
+	    <![CDATA[
+		    select * from c_order
+            where to_char(pay_order_time,'yyyy-mm-dd')=to_char(sysdate,'yyyy-mm-dd') 
+            and order_id=#{order_id}
+            order by pay_order_time desc
+    	]]>
+	</select>
+
+	<select id="getOrdersFromCart" parameterType="java.util.List"
+		resultMap="orderGoodsResult">
+    <![CDATA[
+    SELECT 
+        c.cart_id,
+        c.goods_id, 
+        c.order_goods_qty,
+        g.goods_name AS goods_name, 
+        g.goods_sales_price AS goods_sales_price, 
+        g.goods_point AS goods_point, 
+        g.goods_delivery_price AS goods_delivery_price, 
+        (c.order_goods_qty * g.goods_sales_price) AS order_total_price,
+        i.fileName AS FILENAME
+    FROM C_CART c
+    JOIN C_GOODS g ON c.goods_id = g.goods_id
+    LEFT JOIN C_IMAGE_GOODS i 
+        ON g.goods_id = i.goods_id 
+        AND i.filetype = 'main_image'
+    WHERE c.cart_id IN
+    ]]>
+		<foreach item="cartId" collection="list" open="("
+			separator="," close=")">
+			#{cartId}
+		</foreach>
+	</select>
+
+
+	<delete id="deleteGoodsFromCart" parameterType="orderVO">
+		delete from c_cart
+		where goods_id=#{goods_id}
+	</delete>
+
+
+	<select id="selectOrderList" resultMap="orderGoodsResult"
+		parameterType="String">
+	<![CDATA[
+		SELECT 
+		    o.*, 
+		    g.goods_id, g.goods_sales_price,
+		    g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+		    i.fileName, i.filetype
+		FROM c_order o
+		LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+		LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+		WHERE (o.delivery_state = '배송준비중' OR o.delivery_state = '배송중' OR o.delivery_state = '배송지연')
+		  AND i.filetype = 'main_image'
+		ORDER BY o.pay_order_time DESC	
+	]]>
+	</select>
+
+
+<update id="modOrderDeliverystate" parameterType="com.myspring.team.order.vo.OrderVO">
+    <![CDATA[
+        update c_order
+        set delivery_state = #{delivery_state, jdbcType=VARCHAR},
+        complete_time = sysdate
+        where order_id = #{order_id, jdbcType=INTEGER}
+    ]]>
+</update>
+
+	<select id="selectmyOrderListByID" resultMap="orderGoodsResult"
+		parameterType="String">
+	<![CDATA[
+		SELECT 
+		    o.*, 
+		    g.goods_id, g.goods_sales_price,
+		    g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+		    i.fileName, i.filetype
+		FROM c_order o
+		LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+		LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+		WHERE (o.delivery_state = '배송준비중' OR o.delivery_state = '배송중' OR o.delivery_state = '배송지연')
+		  AND i.filetype = 'main_image'
+		  AND o.mem_id = #{mem_id, jdbcType=VARCHAR}
+		ORDER BY o.pay_order_time DESC	
+	]]>
+	</select>
+
+	<select id="selectSellerOrderListByID"
+		resultMap="orderGoodsResult" parameterType="String">
+	<![CDATA[
+			SELECT 
+		    o.*, 
+		    g.goods_id as goods_goods_id, g.goods_sales_price, g.mem_id as goods_mem_id,
+		    g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+		    i.fileName, i.filetype
+		FROM c_order o
+		LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+		LEFT JOIN c_goods g ON g.mem_id = #{mem_id}
+		LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+		WHERE (o.delivery_state = '배송준비중' OR o.delivery_state = '배송중' OR o.delivery_state = '배송지연')
+		  AND i.filetype = 'main_image'
+		  AND g.mem_id = #{mem_id}
+		ORDER BY o.pay_order_time DESC
+		]]>
+	</select>
+
+	<select id="selectmyClearOrderListByID"
+		resultMap="orderGoodsResult" parameterType="String">
+	<![CDATA[
+		SELECT 
+		    o.*, 
+		    g.goods_id, g.goods_sales_price,
+		    g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+		    i.fileName, i.filetype
+		FROM c_order o
+		LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+		LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+		WHERE o.delivery_state = '배송완료'
+		  AND i.filetype = 'main_image'
+		  AND o.mem_id = #{mem_id, jdbcType=VARCHAR}
+		ORDER BY o.pay_order_time DESC	
+	]]>
+	</select>
+	
+	
+<!-- 리뷰 작성 가능한 주문목록 -->
+<select id="selectPossibleReviewList" parameterType="String" resultType="orderVO">
+    <![CDATA[
+        select o.*,i.fileName
+        from c_order o, c_image_goods i
+        where o.goods_id = i.goods_id
+        and o.mem_id = #{mem_id}
+        and o.delivery_state='배송완료'
+        and i.filetype = 'main_image'
+        and review_status = 'N'
+        order by o.complete_time desc
+    ]]>
+
+    </select>
+    
+    
+	<select id="selectSellerClearOrderListByID"
+		resultMap="orderGoodsResult" parameterType="String">
+	<![CDATA[
+		SELECT 
+		    o.*, 
+		    g.goods_id goods_goods_id, g.goods_sales_price, g.mem_id as goods_mem_id,
+		    g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+		    i.fileName, i.filetype
+		FROM c_order o
+		LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+		LEFT JOIN c_image_goods i ON g.goods_id = i.goods_id
+		WHERE o.delivery_state = '배송완료'
+		AND i.filetype = 'main_image'
+		AND g.mem_id = #{mem_id, jdbcType=VARCHAR}
+		ORDER BY o.pay_order_time DESC	
+	]]>
+	</select>
+
+
+	<select id="selectmyCacncelOrderListByID"
+		resultMap="orderGoodsResult" parameterType="String">
+    <![CDATA[
+        SELECT 
+            o.*, 
+            g.goods_id, g.goods_sales_price,
+            g.goods_delivery_price, g.goods_point, g.goods_name as goods_name,
+            i.fileName, i.filetype
+        FROM c_order o
+        LEFT JOIN c_goods g ON o.goods_id = g.goods_id
+        LEFT JOIN c_image_goods i 
+            ON g.goods_id = i.goods_id 
+            AND i.filetype = 'main_image'  -- ✅ JOIN에서 직접 main_image 필터링 적용
+        WHERE (o.delivery_state = '취소완료' OR o.delivery_state = '환불완료')
+          AND o.mem_id = #{mem_id, jdbcType=VARCHAR}
+        ORDER BY o.pay_order_time DESC
+    ]]>
+	</select>
+
+	<update id="updateOrderId" parameterType="int">
+    <![CDATA[
+    update c_order
+    set delivery_state = '취소완료',
+    complete_time = sysdate
+    where order_id =#{order_id}
+    ]]>
+	</update>
+
+	<!-- 이포근 -->
+	<!-- 일매출 조회 -->
+	<select id="selectDailySales" resultMap="orderGoodsResult"
+		parameterType="java.util.Map">
+	    <![CDATA[
+	        SELECT 
+	            TRUNC(o.pay_order_time) AS order_date,
+	            SUM(o.order_total_price) AS total_sales
+	        FROM c_order o
+	        WHERE TRUNC(o.pay_order_time) BETWEEN TRUNC(sysdate) - 7 AND TRUNC(sysdate)
+	        GROUP BY TRUNC(o.pay_order_time)
+	        ORDER BY order_date DESC
+	    ]]>
+	</select>
+
+	<!-- 6개월 단위로 월별 매출 조회 -->
+	<select id="selectMonthlySales7Months"
+		resultMap="orderGoodsResult" parameterType="java.util.Map">
+	    <![CDATA[
+with chart_datas as (
+    select to_char(o.pay_order_time,'YYYYMM') as month, 
+           o.order_total_price as total_sales 
+    from c_order o
+    left outer join c_goods g
+        on g.goods_id = o.goods_id
+    where to_char(o.pay_order_time,'YYYYMM') >= to_char(add_months(trunc(sysdate, 'MM'), -5), 'yyyymm')
+      and to_char(o.pay_order_time,'YYYYMM') <= to_char(trunc(sysdate, 'MM'), 'YYYYMM')
+      and g.mem_id = #{mem_id, jdbcType=VARCHAR}
+),
+month_list as (
+    select to_char(add_months(trunc(sysdate, 'MM'), LEVEL - 6), 'yyyymm') as month
+    from dual
+    connect by LEVEL <= 6
+)
+select ml.month,
+       nvl(cd.total_sales, 0) as total_sales
+from month_list ml
+left outer join (
+    select month,
+           sum(total_sales) as total_sales
+    from chart_datas
+    group by month
+) cd on cd.month = ml.month
+order by ml.month  -- Adding this line to ensure months are in order
+
+	    ]]>
+	</select>
+	<select id="selectMonthlySales6Months"
+		resultMap="orderGoodsResult" parameterType="java.util.Map">
+    <![CDATA[
+	    WITH months AS (
+	        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5), 'YYYY-MM') AS month FROM dual
+	        UNION ALL
+	        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -4), 'YYYY-MM') FROM dual
+	        UNION ALL
+	        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -3), 'YYYY-MM') FROM dual
+	        UNION ALL
+	        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2), 'YYYY-MM') FROM dual
+	        UNION ALL
+	        SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM') FROM dual
+	        UNION ALL
+	        SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM') FROM dual
+	    )
+	    SELECT 
+	        m.month,
+	        SUM(NVL(o.order_total_price, 0)) AS total_sales
+	    FROM months m
+	    LEFT JOIN c_order o 
+	        ON TO_CHAR(o.pay_order_time, 'YYYY-MM') = m.month
+	        AND o.pay_order_time >= TO_DATE(m.month || '-01', 'YYYY-MM-DD')
+	        AND o.pay_order_time < ADD_MONTHS(TO_DATE(m.month || '-01', 'YYYY-MM-DD'), 1)
+	    GROUP BY m.month
+	    ORDER BY m.month DESC
+	    ]]>
+	</select>
+	<!-- 일별 매출 조회 (판매자별) -->
+	<select id="selectSellerDailySales" resultMap="orderGoodsResult"
+		parameterType="java.util.Map">
+    <![CDATA[
+        SELECT 
+            TRUNC(o.pay_order_time) AS order_date,
+            c_goods.mem_id AS seller_id, 
+            SUM(o.order_total_price) AS total_sales
+        FROM c_order o
+        JOIN c_goods ON o.goods_id = c_goods.goods_id
+        WHERE TRUNC(o.pay_order_time) BETWEEN TRUNC(sysdate) - 7 AND TRUNC(sysdate)
+        GROUP BY TRUNC(o.pay_order_time), c_goods.mem_id
+        ORDER BY order_date DESC, seller_id
+    ]]>
+	</select>
+
+	<!-- 6개월 단위로 월별 매출 조회 (판매자별) -->
+	<select id="selectSellerMonthlySales6Months"
+		resultMap="orderGoodsResult" parameterType="java.util.Map">
+    <![CDATA[
+WITH months AS (
+    SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -5), 'YYYY-MM') AS month FROM dual
+    UNION ALL
+    SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -4), 'YYYY-MM') FROM dual
+    UNION ALL
+    SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -3), 'YYYY-MM') FROM dual
+    UNION ALL
+    SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -2), 'YYYY-MM') FROM dual
+    UNION ALL
+    SELECT TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE, 'MM'), -1), 'YYYY-MM') FROM dual
+    UNION ALL
+    SELECT TO_CHAR(TRUNC(SYSDATE, 'MM'), 'YYYY-MM') FROM dual
+)
+SELECT 
+    m.month,
+    c_goods.mem_id AS seller_id,
+    SUM(NVL(o.order_total_price, 0)) AS total_sales
+FROM months m
+LEFT JOIN c_order o 
+    ON TO_CHAR(o.pay_order_time, 'YYYY-MM') = m.month
+    AND o.pay_order_time >= TO_DATE(m.month || '-01', 'YYYY-MM-DD')
+    AND o.pay_order_time < ADD_MONTHS(TO_DATE(m.month || '-01', 'YYYY-MM-DD'), 1)
+JOIN c_goods ON o.goods_id = c_goods.goods_id
+GROUP BY m.month, c_goods.mem_id
+ORDER BY m.month DESC, seller_id
+    ]]>
+	</select>
+	<!-- 월주문수 -->
+	<select id="selectMonthlyOrderCount" resultType="java.util.Map">
+    <![CDATA[
+        SELECT 
+            TO_CHAR(pay_order_time, 'YYYY-MM') AS month, 
+            COUNT(*) AS order_count
+        FROM c_order
+        GROUP BY TO_CHAR(pay_order_time, 'YYYY-MM')
+        ORDER BY month desc
+    ]]>
+	</select>
+<update id="updateSeqOrderIdStatus" parameterType="int">
+    <![CDATA[
+    update c_order
+    set review_status = 'Y'
+    where seq_order_id = #{seq_order_id}
+    ]]>
+    </update>
+</mapper>

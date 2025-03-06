@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+<mapper namespace="mapper.point">
+
+	<resultMap  id="pointResult" type="pointHistoryVO">
+	  <result property="history_id" column="history_id"/>
+	  <result property="mem_id" column="mem_id"/>
+	  <result property="point_amount" column="point_amount"/>
+	  <result property="action_type" column="action_type"/>
+	  <result property="action_date" column="action_date"/>
+	  </resultMap>
+	  
+	      
+	  
+</mapper>

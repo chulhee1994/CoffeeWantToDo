@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "../mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.recipe">
+	<resultMap id="recipeResult" type="recipeVO">
+		<result property="rownum" column="rownum" />
+		<result property="level" column="level" />
+		<result property="recipe_no" column="recipe_no" />
+		<result property="recipe_title" column="recipe_title" />
+		<result property="recipe_content" column="recipe_content" />
+		<result property="recipe_writedate" column="recipe_writedate" />
+		<result property="mem_id" column="mem_id" />
+		<result property="views" column="views" />
+		<result property="goods_id" column="goods_id" />
+		<!-- 상품 테이블 정보 -->
+		<result property="goods_name" column="goods_name" />  <!-- 이미지 파일 타입 추가 -->
+		<result property="goods_price" column="goods_price" />  <!-- 이미지 파일 타입 추가 -->
+		<result property="goods_sales_price" column="goods_sales_price" />  <!-- 이미지 파일 타입 추가 -->
+		<result property="goods_stock" column="goods_stock" />  <!-- 이미지 파일 타입 추가 -->
+		<result property="goods_create_date" column="goods_create_date" />  <!-- 이미지 파일 타입 추가 -->
+
+		<!-- 상품 이미지 테이블 정보 -->
+		<result property="fileName" column="fileName" />  <!-- 상품 이미지 파일명 추가 -->
+		<result property="fileType" column="fileType" />  <!-- 이미지 파일 타입 추가 -->
+
+	</resultMap>
+
+	<resultMap id="recipeImageResult" type="recipeimageFileVO">
+		<result property="image_id" column="image_id" />
+		<result property="fileName" column="fileName" />
+		<result property="creDate" column="creDate" />
+		<result property="recipe_no" column="recipe_no" />
+	</resultMap>
+
+	<resultMap id="commentResult" type="commentVO">
+		<result property="rownum" column="rownum" />
+		<result property="level" column="level" />
+		<result property="comment_no" column="comment_no" />
+		<result property="parent_comment_no" column="parent_comment_no" />
+		<result property="comment_content" column="comment_content" />
+		<result property="comment_writedate" column="comment_writedate" />
+		<result property="comment_mod_writedate" column="comment_mod_writedate" />
+		<result property="recipe_no" column="recipe_no" />
+		<result property="mem_id" column="mem_id" />
+		<result property="comment_like" column="comment_like" />
+		<result property="comment_dislike" column="comment_dislike" />
+		<result property="ratio" column="ratio" />
+
+
+	</resultMap>
+
+	<select id="selectToRecipes" resultType="int">
+	<![CDATA[
+		SELECT COUNT(RECIPE_NO) FROM C_RECIPE	
+	]]>
+	</select>
+
+	<select id="seq_recipe_no_currval" resultType="int">
+	<![CDATA[
+		SELECT SEQ_RECIPE_NO.CURRVAL 
+		FROM DUAL	
+	]]>
+	</select>
+	
+	<select id="seq_recipe_no_nextval" resultType="int">
+	<![CDATA[
+		SELECT SEQ_RECIPE_NO.nextval
+		FROM DUAL	
+	]]>
+	</select>
+	
+	<select id="checkDuplicateRecipe" parameterType="java.util.Map" resultType="int">
+   <![CDATA[
+    SELECT COUNT(*) FROM C_RECIPE 
+    WHERE RECIPE_TITLE = #{recipe_title} 
+    AND DBMS_LOB.COMPARE(RECIPE_CONTENT, #{recipe_content}) = 0
+    AND MEM_ID = #{mem_id}
+    ]]>
+</select>
+
+
+	<select id="recipeLists" parameterType="java.util.Map"
+    resultMap="recipeResult">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROWNUM AS rn,
+            r.recipe_no,
+            r.recipe_title,
+            r.recipe_content,
+            r.recipe_writedate,
+            r.mem_id,
+            r.views,
+            r.goods_id,
+            g.goods_name,
+            i.fileName,  -- ✅ main_image만 가져오기
+            i.fileType   -- ✅ main_image만 가져오기
+        FROM (
+            -- ✅ 최신 등록된 레시피를 먼저 정렬
+            SELECT * FROM C_RECIPE 
+            ORDER BY recipe_writedate DESC
+        ) r
+        LEFT JOIN C_GOODS g 
+        ON r.goods_id = g.goods_id  -- 상품 정보 가져오기
+        
+        LEFT JOIN C_IMAGE_GOODS i 
+        ON r.goods_id = i.goods_id  
+        AND i.fileType = 'main_image'  --  main_image 조건 추가
+    ) 
+    WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1) 
+                  AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+    ORDER BY recipe_writedate DESC  --  최종적으로 정렬 보장
+    ]]>
+</select>
+
+
+<select id="getRecipesByGoodsId" parameterType="java.util.Map"
+    resultMap="recipeResult">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROWNUM AS rn,
+            r.recipe_no,
+            r.recipe_title,
+            r.recipe_content,
+            r.recipe_writedate,
+            r.mem_id,
+            r.views,
+            r.goods_id,
+            g.goods_name,
+            i.fileName,  -- ✅ main_image만 가져오기
+            i.fileType   -- ✅ main_image만 가져오기
+        FROM (
+            -- ✅ 최신 등록된 레시피를 먼저 정렬 + 특정 goods_id 조건 추가
+            SELECT * FROM C_RECIPE 
+            WHERE goods_id = #{goodsId} 
+            ORDER BY recipe_writedate DESC
+        ) r
+        LEFT JOIN C_GOODS g 
+        ON r.goods_id = g.goods_id  -- 상품 정보 가져오기
+        
+        LEFT JOIN C_IMAGE_GOODS i 
+        ON r.goods_id = i.goods_id  
+        AND i.fileType = 'main_image'  -- ✅ main_image 조건 추가
+    ) 
+    WHERE rn BETWEEN ((#{recipe_section} - 1) * 100 + (#{recipe_pageNum} - 1) * 10 + 1) 
+                  AND ((#{recipe_section} - 1) * 100 + #{recipe_pageNum} * 10)
+    ORDER BY recipe_writedate DESC  -- ✅ 최종적으로 정렬 보장
+    ]]>
+</select>
+
+
+
+
+	<select id="getToRecipes" resultType="int">
+		<![CDATA[
+			SELECT COUNT(*) 
+			FROM C_RECIPE	
+			WHERE goods_id = #{goodsId}
+		]]>
+	</select>
+
+<!--  검색된 전체 레시피 개수 반환 -->
+<select id="selectSearchToRecipes" parameterType="java.util.Map" resultType="int">
+    SELECT COUNT(*)
+    FROM C_RECIPE r
+    LEFT JOIN C_GOODS g ON r.goods_id = g.goods_id
+    WHERE 1=1
+    <if test="searchQuery != null and searchQuery != ''">
+        <if test="searchType eq 'recipe_title'">
+            AND REGEXP_LIKE(r.recipe_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'recipe_content'">
+            AND REGEXP_LIKE(r.recipe_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+        </if>
+        <if test="searchType eq 'both'">
+            AND (
+                REGEXP_LIKE(r.recipe_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) 
+                OR REGEXP_LIKE(r.recipe_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+            )
+        </if>
+    </if>
+</select>
+<!--  검색된 레시피 목록 가져오기 (페이징 적용) -->
+<select id="searchRecipeLists" parameterType="java.util.Map" resultMap="recipeResult">
+    SELECT * FROM (
+        SELECT ROWNUM AS rn, B.* FROM (
+            SELECT r.*, g.goods_name, img.fileName  -- ✅ 상품 이름과 이미지 파일 추가
+            FROM C_RECIPE r
+            LEFT JOIN C_GOODS g ON r.goods_id = g.goods_id  -- ✅ 상품 정보 가져오기
+            LEFT JOIN C_IMAGE_GOODS img 
+            ON g.goods_id = img.goods_id 
+            AND img.FILETYPE = 'main_image'  -- ✅ main_image 만 가져오기
+            WHERE 1=1
+            <if test="searchQuery != null and searchQuery != ''">
+                <if test="searchType eq 'recipe_title'">
+                    AND REGEXP_LIKE(r.recipe_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+                </if>
+                <if test="searchType eq 'recipe_content'">
+                    AND REGEXP_LIKE(r.recipe_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+                </if>
+                <if test="searchType eq 'both'">
+                    AND (
+                        REGEXP_LIKE(r.recipe_title, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', '')) 
+                        OR REGEXP_LIKE(r.recipe_content, REGEXP_REPLACE(#{searchQuery}, '[ㄱ-ㅎㅏ-ㅣ]', ''))
+                    )
+                </if>
+            </if>
+            ORDER BY r.recipe_no DESC
+        ) B
+    ) 
+    WHERE rn BETWEEN ((#{section} - 1) * 100 + (#{pageNum} - 1) * 10 + 1)
+                  AND ((#{section} - 1) * 100 + #{pageNum} * 10)
+</select>
+
+
+
+
+
+	<select id="viewRecipe" resultMap="recipeResult">
+    <![CDATA[
+    SELECT 
+        C.*, 
+        G.goods_name,
+        G.goods_price,
+        G.goods_sales_price,
+        G.goods_stock,
+        G.goods_create_date,
+        IG.fileName  -- C_IMAGE_GOODS 테이블에서 fileName 추가
+    FROM C_RECIPE C
+    JOIN C_GOODS G ON C.GOODS_ID = G.GOODS_ID
+    LEFT JOIN C_IMAGE_GOODS IG ON C.GOODS_ID = IG.GOODS_ID  -- LEFT JOIN으로 추가 (이미지가 없을 수도 있으므로)
+    WHERE C.RECIPE_NO = #{recipe_no}
+    AND IG.FILETYPE = 'main_image'
+    ]]>
+</select>
+
+
+	<select id="viewRecipeImages" parameterType="int"
+		resultType="recipeimageFileVO">
+    <![CDATA[
+    SELECT IMAGE_ID, FILENAME, CREDATE, RECIPE_NO 
+    FROM C_IMAGE_RECIPE
+    WHERE RECIPE_NO = #{recipe_no}
+    ORDER BY CREDATE ASC
+    ]]>
+	</select>
+
+	<!-- ✅ 1️⃣ 레시피 삭제 (C_RECIPE 테이블) -->
+	<delete id="deleteRecipe">
+    <![CDATA[
+    DELETE FROM C_RECIPE
+    WHERE RECIPE_NO = #{recipe_no}
+    ]]>
+	</delete>
+
+	<!-- ✅ 2️⃣ 해당 레시피의 이미지 정보 삭제 (C_IMAGE_RECIPE 테이블) -->
+	<delete id="deleteRecipeImageNames">
+	<![CDATA[
+    DELETE FROM C_IMAGE_RECIPE
+    WHERE RECIPE_NO = #{recipe_no}
+    ]]>
+	</delete>
+	
+	<delete id="deleteRecipeImage">
+	<![CDATA[
+	    DELETE FROM C_IMAGE_RECIPE
+	    WHERE RECIPE_NO =#{recipe_no}
+	    AND fileName = #{fileName}
+	 ]]>
+	</delete>
+
+   <!-- 댓글 및 답글 삭제 -->
+    <delete id="deleteRecipeComment" parameterType="int">
+    	 <![CDATA[
+        DELETE FROM c_comment WHERE recipe_no = #{recipe_no}
+          ]]>
+    </delete>
+
+
+
+	<insert id="addRecipe" parameterType="java.util.Map">
+    <![CDATA[
+    INSERT INTO C_RECIPE(RECIPE_NO, RECIPE_TITLE, RECIPE_CONTENT, MEM_ID,GOODS_ID)
+    VALUES (#{recipe_no}, #{recipe_title}, #{recipe_content},#{mem_id},#{goods_id})
+    ]]>
+	</insert>
+
+	<insert id="insertRecipeImage" parameterType="java.util.Map">
+    <![CDATA[
+    INSERT INTO C_IMAGE_RECIPE(IMAGE_ID, FILENAME, CREDATE, RECIPE_NO)
+    VALUES (SEQ_RECIPE_IMAGE_ID.NEXTVAL, #{fileName}, SYSDATE, #{recipe_no})
+    ]]>
+	</insert>
+
+
+
+	<select id="viewRecipeComment" parameterType="java.util.Map"
+		resultType="commentVO">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROWNUM AS rn, 
+            c.*
+        FROM (
+            SELECT 
+                COMMENT_NO,
+                PARENT_COMMENT_NO,
+                COMMENT_CONTENT,
+                COMMENT_WRITEDATE,
+                COMMENT_MOD_WRITEDATE,
+                RECIPE_NO,
+                MEM_ID,
+                COMMENT_LIKE,
+                COMMENT_DISLIKE
+            FROM C_COMMENT
+            WHERE RECIPE_NO = #{recipe_no}
+            ORDER BY COMMENT_WRITEDATE DESC
+        ) c
+        WHERE ROWNUM <= (#{section} - 1) * 100 + (#{pageNum} * 10) -- ✅ 각 section, pageNum에 맞는 최대 행
+    ) 
+    WHERE rn > (#{section} - 1) * 100 + ((#{pageNum} - 1) * 10) -- ✅ 각 section, pageNum에 맞는 시작 행
+    ]]>
+	</select>
+
+
+
+	<!-- 📌 2️⃣ 총 댓글 수 조회 -->
+	<select id="selectToComments" parameterType="int"
+		resultType="int">
+<![CDATA[
+    SELECT COUNT(*) FROM C_COMMENT WHERE RECIPE_NO = #{recipe_no}
+      ]]>
+	</select>
+
+	<insert id="insertComment">
+<![CDATA[
+        INSERT INTO c_comment (comment_no,recipe_no, mem_id, comment_content)
+        VALUES (seq_comment_no.nextval,#{recipe_no}, #{mem_id}, #{comment_content})
+      ]]>
+	</insert>
+	
+	  <insert id="insertReplyComment">
+	<![CDATA[
+        INSERT INTO c_comment (comment_no,parent_comment_no, recipe_no, mem_id, comment_content)
+        VALUES (seq_comment_no.nextval,#{parent_comment_no}, #{recipe_no}, #{mem_id}, #{comment_content})
+      ]]>
+    </insert>
+	
+	<select id="getLatestComment" resultType="CommentVO">
+<![CDATA[
+      SELECT * FROM (
+    SELECT * FROM c_comment
+    WHERE recipe_no = #{recipe_no}
+    ORDER BY comment_writedate DESC
+) WHERE ROWNUM = 1
+      ]]>
+	</select>
+
+	<select id="getCommentsByRecipe" resultType="CommentVO">
+<![CDATA[
+        SELECT * FROM c_comment WHERE recipe_no = #{recipe_no} ORDER BY comment_writedate DESC
+      ]]>
+	</select>
+	<select id="getSortedComments"
+		resultType="com.myspring.team.recipe.vo.CommentVO">
+    <![CDATA[
+    SELECT * FROM (
+        SELECT 
+            ROWNUM AS rn,
+            c.* 
+        FROM (
+            SELECT 
+                COMMENT_NO,
+                PARENT_COMMENT_NO,
+                COMMENT_CONTENT,
+                COMMENT_WRITEDATE,
+                COMMENT_MOD_WRITEDATE,
+                RECIPE_NO,
+                MEM_ID,
+                COMMENT_LIKE,
+                COMMENT_DISLIKE
+            FROM C_COMMENT
+            WHERE RECIPE_NO = #{recipe_no}
+    ]]>
+		<if test="orderBy == 'latest'">
+        <![CDATA[ ORDER BY COMMENT_WRITEDATE DESC ]]>
+		</if>
+		<if test="orderBy == 'like'">
+        <![CDATA[ ORDER BY COMMENT_LIKE DESC ]]>
+		</if>
+    <![CDATA[
+        ) c
+        WHERE ROWNUM <= (#{section} * 10)
+    ) 
+    WHERE rn > ((#{section} - 1) * 10)
+    ]]>
+	</select>
+
+
+
+	<!-- ✅ 해당 레시피의 총 댓글 수 가져오기 -->
+	<select id="getTotalComments" resultType="int">
+    <![CDATA[
+    SELECT COUNT(*) FROM C_COMMENT WHERE RECIPE_NO = #{recipe_no}
+    ]]>
+	</select>
+
+	<!-- ✅ 댓글을 삭제된 것으로 업데이트 -->
+	<update id="markCommentAsDeleted">
+    <![CDATA[
+    UPDATE C_COMMENT
+    SET comment_content = '삭제된 댓글입니다.',
+        comment_mod_writedate = SYSDATE,
+        mem_id ='unknown'
+    WHERE comment_no = #{comment_no}
+    ]]>
+	</update>
+
+	<update id="updateLike">
+            <![CDATA[
+    UPDATE C_COMMENT 
+        SET comment_like = comment_like + 1, 
+            ratio = (comment_like + 1) / (comment_like + comment_dislike + 1) * 100 
+        WHERE comment_no = #{commentNo}
+    ]]>
+	</update>
+
+	<!-- 싫어요 증가 및 비율 업데이트 -->
+	<update id="updateDislike">
+        <![CDATA[
+    UPDATE C_COMMENT 
+        SET comment_dislike = comment_dislike + 1, 
+            ratio = comment_like / (comment_like + comment_dislike + 1) * 100 
+        WHERE comment_no = #{commentNo}
+    ]]>
+	</update>
+
+	<!-- 특정 댓글 가져오기 -->
+	<select id="getComment" resultType="CommentVO">
+        <![CDATA[
+    SELECT * FROM C_COMMENT WHERE comment_no = #{commentNo}
+   ]]>
+	</select>
+
+	<select id="modComment" parameterType="java.util.Map">
+	 <![CDATA[
+	 	UPDATE C_COMMENT       
+	 	SET comment_content = #{comment_content},
+	 		comment_mod_writedate = sysdate
+	 	where comment_no = #{comment_no}
+	  ]]>
+	
+	</select>
+
+	<update id="updateRecipe" parameterType="java.util.Map"> 
+	 <![CDATA[
+	 	UPDATE C_RECIPE
+	 	SET RECIPE_TITLE = #{recipe_title},
+	 		RECIPE_CONTENT =#{recipe_content}
+	 	WHERE RECIPE_NO = #{recipe_no}
+	    ]]>
+	</update>
+	
+	<select id="selectAllComments" resultType="CommentVO">
+	 <![CDATA[
+	 	select * from c_comment
+	    ]]>
+	</select>
+	
+	<update id="updateFilteredContent" parameterType="java.util.Map">
+		 <![CDATA[
+		 	update c_comment
+		 	set comment_content = #{comment_content}
+		 	where comment_no = #{comment_no}
+		  ]]>
+	</update>
+	
+	<update id="updateViews" parameterType="int">
+		 <![CDATA[
+		 	update C_RECIPE
+		 	set views = views + 1
+		 	where recipe_no = #{recipe_no}
+		  ]]>
+	</update>
+	
+	
+	
+
+</mapper>
