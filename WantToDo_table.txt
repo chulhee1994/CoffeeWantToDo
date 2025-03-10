@@ -1,0 +1,328 @@
+CREATE SEQUENCE  SEQ_CART_ID  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 2 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_COMMENT_NO  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 11 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_GOODS_ID  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 261 CACHE 20 NOORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_GOODS_IMAGE_ID  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 2 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_HISTORY_ID  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 27 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_IMAGE_ID  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 261 CACHE 20 NOORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_NOTICE_NO  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 5 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_ORDER_ID  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 281 CACHE 20 NOORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_RECIPE_IMAGE_ID  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 12 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_RECIPE_NO  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 8 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_REVIEW_IMAGE_ID  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 2 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_REVIEW_NO  MINVALUE 1 MAXVALUE 5000000 INCREMENT BY 1 START WITH 2 NOCACHE  ORDER  NOCYCLE ;
+CREATE SEQUENCE  SEQ_ORDER_ID_UQ  MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 281 CACHE 20 NOORDER  NOCYCLE ;
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+
+--------------------------------테이블 생성--------------------------------
+-- 상품 테이블 (원두, 커피 용품, 베이커리)
+CREATE TABLE c_goods (
+  goods_id NUMBER(20) PRIMARY KEY,          -- 상품 ID (고유 번호)
+  goods_name VARCHAR2(50) NOT NULL,         -- 상품 이름
+  goods_category VARCHAR2(30) NOT NULL,     -- 상품 카테고리 (원두, 커피 용품, 베이커리 등)
+  goods_price NUMBER(10) NOT NULL,          -- 상품 원가 (정가)
+  goods_sales_price NUMBER(10) NOT NULL,    -- 상품 할인 가격 (실제 판매 가격)
+  goods_stock NUMBER(10) NOT NULL,          -- 상품 재고 수량
+  goods_like NUMBER(10),                    -- 상품 좋아요 수
+  mem_id VARCHAR2(30) NOT NULL,             -- 판매자 ID (회원 테이블 c_member의 mem_id 외래키)
+  goods_roasting_date DATE,                 -- 원두의 제조(로스팅) 날짜
+  goods_create_date DATE DEFAULT SYSDATE,   -- 상품 등록 날짜
+  goods_w_filter VARCHAR2(50),              -- 상품 추천 날씨 필터
+  goods_c_roasting VARCHAR2(30),            -- 원두 로스팅 방법 (라이트, 미디움, 다크 등)
+  goods_c_blending VARCHAR2(10),            -- 블렌딩 여부 (Y: 블렌딩 / N: 단일 원두)
+  goods_c_gram NUMBER(10),                   -- 원두 무게 (그램 단위)
+  goods_c_note VARCHAR2(100),                -- 원두의 맛 (산도, 쓴맛, 단맛 등)
+  goods_c_det_note VARCHAR2(100),            -- 원두의 향 (초콜릿향, 과일향 등)
+  goods_origin1 VARCHAR2(30),                -- 원산지 1
+  goods_origin2 VARCHAR2(30),                -- 원산지 2
+  goods_origin3 VARCHAR2(30),                -- 원산지 3
+  goods_point NUMBER(10),                    -- 포인트 적립률 (예: 0.4%)
+  goods_m_filter VARCHAR2(50),               -- MBTI 기반 상품 추천 필터
+  goods_delivery_price number(20) default 0 ,-- 상품 배송비 새로 추가한 컬럼
+  goods_status VARCHAR2(10) DEFAULT 'Y' 
+);
+
+-- 상품 이미지 테이블
+CREATE TABLE c_image_goods (
+  image_id NUMBER PRIMARY KEY,               -- 이미지 ID (고유 번호)
+  goods_id NUMBER(20),                        -- 상품 ID (c_goods 테이블의 goods_id 외래키)
+  fileName VARCHAR2(150),                      -- 이미지 파일명
+  fileType VARCHAR2(40),                      -- 이미지 파일 유형
+  credate DATE DEFAULT SYSDATE                -- 이미지 등록 날짜
+);
+
+--레시피 이미지 테이블
+CREATE TABLE c_image_recipe (
+ image_id number primary key,
+ filename varchar2(50),
+ credate date default sysdate,
+ recipe_no number(10)
+);
+
+CREATE TABLE c_image_review (
+ image_id number primary key,
+ filename varchar2(50),
+ credate date default sysdate,
+ review_no number(10),
+ filetype VARCHAR2(40)
+ );
+
+-- 회원 테이블
+CREATE TABLE c_member (
+  mem_id VARCHAR2(50) PRIMARY KEY,            -- 회원 ID (고유 번호)
+  mem_pwd VARCHAR2(50) NOT NULL,              -- 비밀번호
+  mem_pwd_hint VARCHAR2(50),                  -- 비밀번호 힌트 질문
+  mem_name VARCHAR2(50),                      -- 회원 이름
+  mem_tel1 VARCHAR2(20),                      -- 휴대폰 번호 앞자리
+  mem_tel2 VARCHAR2(20),                      -- 휴대폰 번호 중간자리
+  mem_tel3 VARCHAR2(20),                      -- 휴대폰 번호 끝자리
+  mem_telsts_yn VARCHAR2(10) DEFAULT 'Y',     -- 문자 수신 여부 (Y: 수신, N: 거부)
+  mem_gender NUMBER,                          -- 성별 (1: 남성, 2: 여성)
+  mem_email1 VARCHAR2(50),                    -- 이메일 아이디
+  mem_email2 VARCHAR2(50),                    -- 이메일 도메인
+  mem_emailsts_yn VARCHAR2(10) DEFAULT 'Y',   -- 이메일 수신 여부
+  mem_birth VARCHAR2(30),                     -- 생년월일
+  mem_zipcode VARCHAR2(50),                   -- 우편번호
+  mem_add1 VARCHAR2(100),                     -- 기본 주소
+  mem_add2 VARCHAR2(100),                     -- 상세 주소
+  mem_add3 VARCHAR2(100),                     -- 추가 주소 정보
+  mem_point NUMBER DEFAULT 0,                 -- 보유 포인트
+  mem_del_yn VARCHAR2(10) DEFAULT 'N',        -- 회원 탈퇴 여부 (Y: 탈퇴, N: 정상)
+  mem_grade VARCHAR2(30) DEFAULT 'common',    -- 회원 등급 (일반, VIP 등)
+  mem_joindate DATE DEFAULT SYSDATE,          -- 회원 가입일
+  mem_seller_num VARCHAR2(50) UNIQUE,         -- 판매자 등록 번호 (사업자 번호)
+  mem_cmp_name VARCHAR2(30) UNIQUE,           -- 판매자 상호명
+  mem_agree1 VARCHAR2(10) DEFAULT 'Y',        -- 약관 동의 여부 1
+  mem_agree2 VARCHAR2(10) DEFAULT 'Y',         -- 약관 동의 여부 2
+  mem_del_yn_date Timestamp                       --탈퇴 시간
+);
+
+-- 회원 주소록 테이블
+CREATE TABLE c_address (
+  address_id NUMBER(10),                      -- 주소록 ID
+  address_name VARCHAR2(20),                  -- 주소 이름 (예: 집, 회사)
+  mem_id VARCHAR2(50),                        -- 회원 ID (c_member의 mem_id 외래키)
+  mem_zipcode VARCHAR2(50),                   -- 우편번호
+  mem_add1 VARCHAR2(100),                     -- 기본 주소
+  mem_add2 VARCHAR2(100),                     -- 상세 주소
+  mem_add3 VARCHAR2(100)                      -- 추가 주소 정보
+);
+
+-- 장바구니 테이블
+CREATE TABLE c_cart (
+  cart_id NUMBER PRIMARY KEY,                 -- 장바구니 ID
+  goods_id NUMBER(20),                        -- 상품 ID (c_goods 테이블의 goods_id 외래키)
+  mem_id VARCHAR2(50),                        -- 회원 ID (c_member 테이블의 mem_id 외래키)
+  order_goods_qty NUMBER(10) DEFAULT 1        -- 장바구니에 담긴 상품 수량
+);
+
+-- 주문 테이블
+CREATE TABLE c_order (
+  seq_order_id NUMBER(20) PRIMARY KEY,        -- 개별 주문 ID
+  order_id NUMBER(20),                        -- 주문 그룹 ID (한 번의 주문 내 여러 개의 상품 포함 가능)
+  mem_id VARCHAR2(20),                        -- 주문한 회원 ID (c_member 테이블의 mem_id 외래키)
+  goods_id NUMBER(20),                        -- 주문한 상품 ID (c_goods 테이블의 goods_id 외래키)
+  orderer_name VARCHAR2(50),                  -- 주문자 이름
+  goods_name VARCHAR2(50),                    -- 주문한 상품 이름
+  order_goods_qty NUMBER(10) NOT NULL,        -- 주문한 상품 수량
+  goods_sales_price NUMBER(15),                -- 상품 할인 가격
+  order_total_price NUMBER(15),               -- 총 주문 가격
+  final_total_price NUMBER(15),               -- 최종 결제 금액
+  orderer_hp1 VARCHAR2(50),                   -- 주문자 전화번호 앞자리
+  orderer_hp2 VARCHAR2(50),                   -- 주문자 전화번호 중간자리
+  orderer_hp3 VARCHAR2(50),                   -- 주문자 전화번호 끝자리
+  receiver_name VARCHAR2(50),                 -- 수령인 이름
+  receiver_tel1 VARCHAR2(20),                 -- 수령인 전화번호 앞자리
+  receiver_tel2 VARCHAR2(20),                 -- 수령인 전화번호 중간자리
+  receiver_tel3 VARCHAR2(20),                 -- 수령인 전화번호 끝자리
+  delivery_address VARCHAR2(500),             -- 배송지 주소
+  delivery_method VARCHAR2(40),               -- 배송 방법 (택배, 편의점 등)
+  delivery_message CLOB,                      -- 배송 메시지
+  gift_wrapping VARCHAR2(50),                 -- 선물 포장 여부
+  pay_method VARCHAR2(500),                   -- 결제 방법
+  card_com_name VARCHAR2(50),                 -- 카드사 이름
+  card_pay_month VARCHAR2(20),                -- 카드 할부 개월 수
+  pay_orderer_hp_num VARCHAR2(20),            -- 주문자 orderer_hp1, 2, 3 합친거
+  delivery_state VARCHAR2(20) DEFAULT '배송 준비중', -- 배송 상태
+  pay_order_time DATE DEFAULT SYSDATE,        -- 결제 시간
+  review_status VARCHAR2(5) DEFAULT 'n',       -- 리뷰 작성 여부 (Y/N)
+  imp_uid varchar2(100),
+  t_id varchar2(100),
+  complete_time timestamp(6),
+  merchant_uid varchar2(100),
+  GOODS_FILENAME	VARCHAR2(200),
+  ADDRESS_ID	NUMBER(10,0)
+);
+
+-- 포인트 사용 내역 테이블
+CREATE TABLE c_point_history (
+  history_id NUMBER PRIMARY KEY,              -- 포인트 사용 내역 ID
+  mem_id VARCHAR2(50),                        -- 회원 ID (c_member 테이블의 mem_id 외래키)
+  point_amount NUMBER,                         -- 포인트 사용 금액
+  action_type VARCHAR2(20),                    -- 포인트 사용 유형 (적립/사용)
+  action_date timestamp DEFAULT SYSDATE             -- 포인트 내역 발생 날짜
+ seq_order_id number(20)
+);
+
+-- 공지사항
+CREATE TABLE c_notice (
+ notice_no number primary key,
+ notice_head varchar2(50),
+ notice_title varchar2(50) not null,
+ notice_content clob,
+ notice_writedate date default sysdate,
+ filename varchar2(40),
+ mem_id varchar2(50),
+ views number(10)
+);
+
+--댓글
+CREATE TABLE c_comment (
+ comment_no number primary key,
+ parent_comment_no number,
+ comment_content clob,
+ comment_writedate date default sysdate,
+ comment_mod_writedate date,
+ recipe_no number,
+ mem_id varchar2(50),
+ comment_like number,
+ comment_dislike number,
+ ratio number
+);
+
+CREATE TABLE c_recipe (
+ recipe_no number primary key,
+ recipe_title varchar2(50) not null,
+ recipe_content clob,
+ recipe_writedate date default sysdate,
+ mem_id varchar2(50),
+ views number(10),
+ goods_id number
+);
+
+CREATE TABLE c_review (
+ review_no number primary key,
+ goods_id number(20),
+ review_title varchar2(50) not null,
+ review_content clob,
+ review_writedate date default sysdate,
+ review_star number default 0,
+ goods_like number(10) default 0,
+ mem_id varchar2(50),
+ views number default 0,
+ filetype varchar2(40)
+);
+--------------------------------테이블 생성--------------------------------
+
+--------------------------------외래키--------------------------------
+
+--상품 외래키
+alter table c_goods 
+add constraint c_goods_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE; 
+--상품 외래키
+
+--상품 이미지 외래키
+alter table c_image_goods
+add constraint c_image_goods_fk foreign key(goods_id) references c_goods(goods_id); 
+--상품 이미지 외래키
+
+--주소록 외래키
+alter table c_address
+add constraint c_address_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE; 
+--주소록 외래키
+
+--공지사항 외래키
+alter table c_notice
+add constraint c_notice_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE;
+--공지사항 외래키
+
+--리뷰게시판 외래키
+alter table c_review
+add constraint c_review_mem_idfk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE;
+
+alter table c_review
+add constraint c_review_goods_id_fk foreign key(goods_id) references c_goods(goods_id);
+--리뷰게시판 외래키
+
+--리뷰게시판 이미지 외래키
+alter table c_image_review
+add constraint c_review_no_fk foreign key(review_no) references c_review(review_no);
+--리뷰게시판 이미지 외래키
+
+--레시피게시판 외래키
+alter table c_recipe
+add constraint c_recipe_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE;
+
+alter table c_recipe
+add constraint c_recipe_goods_id_fk foreign key(goods_id) references c_goods(goods_id);
+--레시피게시판 외래키
+
+--레시피게시판 댓글 외래키
+alter table c_comment
+add constraint c_recipe_no_fk foreign key(recipe_no) references c_recipe(recipe_no);
+--레시피게시판 댓글 외래키
+
+--레시피게시판 이미지 외래키
+alter table c_image_recipe
+add constraint c_image_recipe_no_fk foreign key(recipe_no) references c_recipe(recipe_no);
+--레시피게시판 이미지 외래키
+
+--장바구니 외래키
+alter table c_cart
+add constraint c_cart_goods_id_fk foreign key(goods_id) references c_goods(goods_id); 
+
+alter table c_cart
+add constraint c_cart_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE; 
+--장바구니 외래키
+
+--주문 외래키
+alter table c_order
+add constraint c_order_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE;
+--주문 외래키
+
+--포인트 사용내역 외래키
+alter table c_point_history
+add constraint c_history_mem_id_fk foreign key(mem_id) references c_member(mem_id) ON DELETE CASCADE;
+--포인트 사용내역 외래키
+
+--굿즈 이미지 외래키
+alter table c_image_goods 
+add constraint c_image_goods_fk foreign key (goods_id) references c_goods(goods_id) on delete cascade;
+--굿즈 이미지 외래키
+
+--굿즈 레시피 외래키
+alter table c_image_recipe 
+add constraint c_image_recipe_no_fk foreign key (recipe_no) references c_recipe(recipe_no) on delete cascade;
+--굿즈 레시피 외래키
+
+--굿즈 리뷰 외래키
+alter table c_image_review
+add constraint c_review_no_fk foreign key (review_no) references c_review(review_no)on delete cascade;
+--굿즈 리뷰 외래키
+--------------------------------외래키--------------------------------
+-------------------------------프로시저---------------------------------
+--탈퇴회원 자동 삭제 프로시저 (프로시저 먼저 만들고 스케줄러 실행)
+//프로시저
+CREATE OR REPLACE PROCEDURE DELETE_EXPIRED_MEMBERS AS
+BEGIN
+    DELETE FROM c_member
+    WHERE mem_del_yn_date IS NOT NULL
+    AND mem_del_yn_date < SYSDATE - INTERVAL '2' MINUTE;
+    COMMIT;
+END;
+/
+
+//스케줄러
+BEGIN
+    DBMS_SCHEDULER.create_job (
+        job_name        => 'delete_expired_members_sch',  -- 작업 이름
+        job_type        => 'PLSQL_BLOCK',              -- 작업 타입 (PL/SQL 블록)
+        job_action      => 'BEGIN DELETE_EXPIRED_MEMBERS; END;',  -- 프로시저 호출
+        start_date      => SYSTIMESTAMP,               -- 시작 시간 (현재 시간)
+        repeat_interval => 'FREQ=MINUTELY; INTERVAL=1',  -- 1분마다 실행
+        enabled         => TRUE                        -- 작업을 활성화 상태로 생성
+    );
+END;
+/
+---------------------------------------------------------------------------------------------------
