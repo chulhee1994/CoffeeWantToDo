@@ -11,9 +11,11 @@ skill
 ![프로젝트 회의록002](https://github.com/user-attachments/assets/12fd6d8f-6544-4d7e-8a21-55d97537266c)
 
 
-정보구조도
+정보구조도(일반회원)
 ![정보구조도(일반회원)](https://github.com/user-attachments/assets/3537bdf2-be87-45bc-8fee-d5a18e89e409)
+정보구조도(판매자)
 ![정보구조도(판매자)](https://github.com/user-attachments/assets/f2e42097-1459-4ee3-b666-17b9221c30bc)
+정보구조도(관리자)
 ![정보구조도(관리자)](https://github.com/user-attachments/assets/05218461-385f-4511-bb65-f2faabbf965b)
 
 API 사용목록
